@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .tw-scrollbar-simple {
+        @apply tw-scrollbar-thin
+        !tw-scrollbar-track-slate-100
+        !tw-scrollbar-thumb-slate-300
+        !tw-scrollbar-thumb-rounded-full
+        !tw-scrollbar-track-rounded-full
+        dark:!tw-scrollbar-track-slate-500/[0.16]
+        dark:!tw-scrollbar-thumb-slate-500/50
+        /* lg:tw-supports-scrollbars:pr-2; */;
+    }
+}

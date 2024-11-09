@@ -1,0 +1,17 @@
+{
+    "name": "imoncn/suovawp",
+    "autoload": {
+        "psr-4": {
+            "Suovawp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "imoncn",
+            "email": "service@yimmr.com"
+        }
+    ],
+    "require-dev": {
+        "phpstan/phpstan": "^1.12"
+    }
+}
