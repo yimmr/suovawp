@@ -8,10 +8,16 @@ import { useEffect, useRef, useState } from 'react';
 const getItemTitle = (
     from: GroupItemProps['titleFrom'],
     value: GroupItemProps['value'],
-    fields: GroupItemProps['fields']
+    fields: GroupItemProps['fields'],
+    keys: string[] = []
 ) => {
     if (!from) return;
-    if (value && value[from]) return value[from];
+    if (value) {
+        if (value[from]) return value[from];
+        for (const key of keys) {
+            if (value[key]) return value[key];
+        }
+    }
     if (fields.length) {
         const field = fields.find((field) => field?.id === from);
         if (field?.value) return field?.value;
@@ -55,7 +61,9 @@ export default function ({
         disabled: false,
     });
     const divRef = useRef<HTMLDivElement>(null);
-    const [title, setTitle] = useState(getItemTitle(titleFrom, value, fields) || `项目${id}`);
+    const [title, setTitle] = useState(
+        getItemTitle(titleFrom, value, fields, ['label']) || `项目${id}`
+    );
 
     useEffect(() => {
         if (divRef.current == null || !titleFrom) return;

@@ -1,9 +1,14 @@
+const defaultTheme = require('tailwindcss/defaultTheme');
+
 /** @type {import('tailwindcss').Config} */
 export default {
     prefix: 'tw-',
     content: ['./src/**/*.{js,ts,jsx,tsx}'],
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['Inter Var', 'Inter', ...defaultTheme.fontFamily.sans],
+            },
             boxShadow: {
                 b: '0 1px 0 0 rgb(0 0 0 / 0.05);',
             },

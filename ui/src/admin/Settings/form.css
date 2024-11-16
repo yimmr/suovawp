@@ -1,7 +1,0 @@
-.suovawp-radio-inline .components-v-stack {
-    @apply flex flex-wrap justify-start flex-row gap-8;
-}
-
-.suovawp-checkbox-inline {
-    @apply flex flex-wrap gap-8;
-}

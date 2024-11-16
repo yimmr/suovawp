@@ -1,7 +1,7 @@
 import { TreeSelect } from '@wordpress/components';
 import type { TreeSelectFieldProps } from './types';
 import BaseField from './BaseField';
-import useFormRestState from '../hooks/useFormRestState';
+import useFormRestState from '../../hooks/useFormRestState';
 
 export default function ({ errors, value, type: _t, tree, ...props }: TreeSelectFieldProps) {
     const [selected, setSelected, fieldRef] = useFormRestState<HTMLDivElement, string>(value ?? '');

@@ -13,16 +13,29 @@ abstract class Model
     protected $changed = [];
 
     /** @var Schema */
-    private $schema;
+    protected $schema;
+
+    protected $idKey = 'id';
+
+    /** @var int */
+    protected $id;
 
     /**
      * @param D|array $data
      * @param O|array $options
      */
-    public function __construct(array $data = [], $options = [])
+    public function __construct(array $data = [], array $options = [])
     {
         $this->data = $data;
-        $this->schema = $options['schema'] ?? null;
+        if ($options['schema'] ?? null) {
+            $this->schema = $options['schema'];
+            $this->idKey = $this->schema::ID;
+        }
+    }
+
+    public function getId()
+    {
+        return $this->id ??= (int) $this->get($this->idKey, 0);
     }
 
     public function get($key, $default = null)

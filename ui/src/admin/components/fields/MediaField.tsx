@@ -1,10 +1,10 @@
 import { Button } from '@wordpress/components';
 import BaseField from './BaseField';
 import type { MediaFieldProps } from './types';
-import useMediaUpload from '../hooks/useMediaUpload';
-import type { MediaAttachment } from '../hooks/useMediaUpload';
+import useMediaUpload from '../../hooks/useMediaUpload';
+import type { MediaAttachment } from '../../hooks/useMediaUpload';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useFormReset } from '../hooks/useFormReset';
+import { useFormReset } from '../../hooks/useFormReset';
 import MediaCards from './MediaCards';
 
 export type Attachment = MediaAttachment;

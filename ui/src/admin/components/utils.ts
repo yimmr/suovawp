@@ -75,3 +75,30 @@ export function generateGridColsWithPreset<T extends Record<string, Columns>>(
     const columns = typeof cols === 'string' ? preset[cols] : cols;
     return generateGridCols(columns as Columns, prefix);
 }
+
+export const snakeToCamel = (str: string) => str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+
+const convertObjectKey = (key: string) => {
+    switch (key) {
+        case 'default':
+            return 'defaultValue';
+        case 'active_tab':
+            return 'activeTab';
+        default:
+            return snakeToCamel(key);
+    }
+};
+
+export const formatApiData = (data: any): any => {
+    if (!data) {
+        return data;
+    }
+    if (Array.isArray(data)) {
+        return data.map((item) => formatApiData(item));
+    } else if (typeof data === 'object' && data !== null) {
+        return Object.fromEntries(
+            Object.entries(data).map(([key, val]) => [convertObjectKey(key), formatApiData(val)])
+        );
+    }
+    return data;
+};

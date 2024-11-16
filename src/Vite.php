@@ -163,14 +163,11 @@ class Vite
     public function enqueueScript($handle, $src = '', $deps = [], $ver = null, $args = false)
     {
         wp_enqueue_script($handle, $src, $deps, $ver, $args);
-        add_filter(
-            'script_loader_tag',
-            fn ($t, $h, $s) => $s === $src
-                ? preg_replace('/(<script[^>]*?src=[\'"]*'.preg_quote($s, '/').'[\'"]*[^>]*?)>/i', '$1 type="module">', $t)
-                : $t,
-            10,
-            3
-        );
+        $func = fn ($t, $h, $s) => $s === $src
+            ? preg_replace('/<script([^>]*?src=[\'"]'.preg_quote($s, '/').'[\'"])/i',
+                '<script type="module"$1', $t)
+            : $t;
+        add_filter('script_loader_tag', $func, 10, 3);
     }
 
     public function legacy($entry, $polyfill)

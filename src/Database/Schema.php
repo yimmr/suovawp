@@ -66,9 +66,14 @@ class Schema
     {
         if (static::MODEL) {
             $className = static::MODEL;
-            return new $className(static::afterGet((array) $row), ['schema' => static::class]);
+            return new $className(static::toModelData($row), ['schema' => static::class]);
         }
         return (object) $row;
+    }
+
+    protected static function toModelData($row)
+    {
+        return static::afterGet((array) $row);
     }
 
     /**

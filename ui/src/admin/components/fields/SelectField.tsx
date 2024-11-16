@@ -1,7 +1,7 @@
 import { SelectControl } from '@wordpress/components';
 import BaseField from './BaseField';
 import type { SelectFieldProps } from './types';
-import useFormRestState from '../hooks/useFormRestState';
+import useFormRestState from '../../hooks/useFormRestState';
 import { convertFieldOptions } from '../utils';
 
 export default function ({

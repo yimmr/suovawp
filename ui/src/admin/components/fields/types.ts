@@ -1,5 +1,6 @@
-import { ColorPalette } from '@wordpress/components';
-import React from 'react';
+import type { LanguageName } from '@uiw/codemirror-extensions-langs';
+import type { WPColorPaletteProps } from './types-wp';
+import type { CodeEditorTheme } from './CodeEditor';
 
 type Errors = string[];
 
@@ -142,11 +143,26 @@ export interface UploadFieldProps extends BaseFieldProps {
     type: 'upload';
 }
 
-export interface ColorPaletteProps extends BaseFieldProps {
+export interface ColorPaletteFieldProps extends BaseFieldProps {
     type: 'color-palette';
     clearable?: boolean;
-    colors?: React.ComponentProps<typeof ColorPalette>['colors'];
+    colors?: WPColorPaletteProps['colors'];
     value?: string;
+}
+
+export interface CodeEditorProps {
+    value?: string;
+    onChange: (value: string) => void;
+    language?: LanguageName;
+    theme?: CodeEditorTheme;
+    height?: string;
+    readOnly?: boolean;
+}
+
+export interface CodeFieldProps extends BaseFieldProps, Omit<CodeEditorProps, 'onChange'> {
+    type: 'code';
+    value?: string;
+    lang?: CodeEditorProps['language'];
 }
 
 export type MediaType = 'image' | 'video' | 'audio' | 'application' | 'file';
@@ -160,6 +176,7 @@ export type MediaCards = {
     ratio?: 'auto' | 'square' | 'auto' | '3/4' | string;
     objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
 };
+
 export interface MediaFieldProps extends BaseFieldProps {
     type: 'media';
     value?: number | number[];
@@ -217,7 +234,8 @@ export type FieldProps =
     | DatePickerFieldProps
     | UploadFieldProps
     | CustomFieldProps
-    | ColorPaletteProps
+    | ColorPaletteFieldProps
     | MediaFieldProps
     | GroupFieldProps
-    | FieldsetFieldProps;
+    | FieldsetFieldProps
+    | CodeFieldProps;

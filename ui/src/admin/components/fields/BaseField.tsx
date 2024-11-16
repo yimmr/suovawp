@@ -15,7 +15,7 @@ export default function ({ errors, children, label, help, id, fieldRef, classNam
         return (
             <BaseControl
                 as="label"
-                className={`[&_label]:!tw-text-sm [&_label]:!tw-font-bold tw-mb-7${clsn}`}
+                className={`suovawp-form-field [&_label]:!tw-text-sm [&_label]:!tw-font-bold tw-mb-7${clsn}`}
                 help={help}
                 label={label}
                 id={id}
@@ -30,7 +30,7 @@ export default function ({ errors, children, label, help, id, fieldRef, classNam
     return (
         <div
             ref={fieldRef}
-            className={`[&_label]:!tw-text-sm [&_label]:!tw-font-bold tw-mb-6${clsn}`}
+            className={`suovawp-form-field [&_label]:!tw-text-sm [&_label]:!tw-font-bold tw-mb-6${clsn}`}
         >
             {children}
             <ErrorList errors={errors} />

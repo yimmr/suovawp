@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { Button } from '@wordpress/components';
-import { showToast } from '../Toast';
+import { showToast } from './Toast';
 import FormContent from './FormContent';
 import type { FormContentProps } from './FormContent';
 

@@ -1,6 +1,6 @@
 import { ColorPalette } from '@wordpress/components';
-import type { ColorPaletteProps } from './types';
-import useFormRestState from '../hooks/useFormRestState';
+import type { ColorPaletteFieldProps } from './types';
+import useFormRestState from '../../hooks/useFormRestState';
 import BaseField from './BaseField';
 
 export default ({
@@ -12,7 +12,7 @@ export default ({
     className,
     type: _t,
     ...props
-}: ColorPaletteProps) => {
+}: ColorPaletteFieldProps) => {
     const [color, setColor, inputRef] = useFormRestState<HTMLInputElement, typeof value>(value);
     const clsn = `${className ? ' ' + className : ''}`;
     return (

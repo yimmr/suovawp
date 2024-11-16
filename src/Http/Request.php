@@ -2,9 +2,11 @@
 
 namespace Suovawp\Http;
 
+use Suovawp\Utils\URL;
+
 /**
  * @property 'GET'|'POST'                              $method
- * @property string                                    $url
+ * @property URL                                       $url
  * @property string                                    $pathname
  * @property string                                    $headers
  * @property string                                    $body
@@ -44,7 +46,24 @@ class Request
 
     public function __get($name)
     {
+        if ('url' == $name) {
+            $this->url ??= new URL($this->getCurrentURL());
+        }
         return $this->$name;
+    }
+
+    protected function getCurrentURL()
+    {
+        $url = home_url($_SERVER['REQUEST_URI']);
+        if (!$url) {
+            $host = $_SERVER['HTTP_HOST'];
+            $protocol = isset($_SERVER['HTTPS']) && 'on' === $_SERVER['HTTPS'] ? 'https' : 'http';
+            $url = $protocol."://$host$_SERVER[REQUEST_URI]";
+        }
+        if (!empty($_SERVER['FRAGMENT'])) {
+            $url .= '#'.$_SERVER['FRAGMENT'];
+        }
+        return $url;
     }
 
     public function setParams($params)

@@ -1,6 +1,6 @@
 import type { RangeFieldProps } from './types';
 import { RangeControl } from '@wordpress/components';
-import useFormRestState from '../hooks/useFormRestState';
+import useFormRestState from '../../hooks/useFormRestState';
 import BaseField from './BaseField';
 
 export default function ({ errors, type, value: val, name, ...props }: RangeFieldProps) {

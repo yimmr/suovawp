@@ -7,7 +7,7 @@ use Suovawp\Validation\Validator as v;
 
 /**
  * @phpstan-type FieldType 'custom'|'text'|'textarea'|'input'|'number'|'range'|'toggle'|'checkbox'|'radio'|'select'|'tree-select'|
- *      'date-picker'|'color-palette'|'media'|'upload'|'group'|'fieldset'
+ *      'date-picker'|'color-palette'|'media'|'upload'|'code'|'group'|'fieldset'
  * @phpstan-type Tree array{id:string,name:string,children?:Tree[]}
  * @phpstan-type HTMLInputType 'text'|'password'|'email'|'number'|'tel'|'url'|'search'|'date'|'time'|'datetime-local'|'color';
  * @phpstan-type MediaType 'image'|'video'|'audio'|'file'|'application'
@@ -40,6 +40,8 @@ use Suovawp\Validation\Validator as v;
  *          ratio?: 'auto'|'square'|'auto'|'3/4'|string,
  *          objectFit?: 'cover'|'contain'|'fill'|'none'|'scale-down'
  *      }
+ *      height?:string,language?:string,lang?:string,
+ *      theme?:"light"|"dark"|"github"|"github-light"|"github-dark"|"duotone"|"duotone-light"|"duotone-dark"|"sublime"|"atomone"|"dracula",
  */
 class FormField
 {
@@ -101,7 +103,7 @@ class FormField
             if ($field['required'] ?? false) {
                 $type = $type->required();
             }
-            foreach (['min', 'max', 'refine', 'transform', 'format'] as $key) {
+            foreach (['min', 'max', 'refine', 'transform', 'format', 'code'] as $key) {
                 if (isset($field[$key]) && method_exists($type, $key)) {
                     $type = $type->{$key}($field[$key]);
                 }
@@ -109,11 +111,11 @@ class FormField
             if (!empty($field['between']) && method_exists($type, 'between')) {
                 $type = $type->between($field['between'][0], $field['between'][1]);
             }
-            if (empty($field['sanitize'])) {
+            if (!isset($field['sanitize'])) {
                 if ($type instanceof TypesStr) {
                     $type->sanitize('text');
                 }
-            } else {
+            } elseif ($field['sanitize']) {
                 $params = is_array($field['sanitize']) ? $field['sanitize'] : [$field['sanitize']];
                 $type = $type->sanitize(...$params);
             }
@@ -165,6 +167,8 @@ class FormField
             case 'group':
                 $item = self::createValidator($field['fields']);
                 return v::array($item);
+            case 'code':
+                return v::string()->code($field['lang'] ?? ($field['language'] ?? 'html'));
             default:
                 return v::string();
         }

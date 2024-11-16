@@ -3,7 +3,7 @@ import FormField from './fields/Field';
 import type { FieldProps, FormErrors } from './fields/types';
 import { parseClassNames } from './utils';
 
-import './form.css';
+import './_form.css';
 
 export interface FormContentProps {
     fields: FieldProps[];

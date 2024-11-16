@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import type { FieldProps } from './types';
 import TextareaField from './TextareaField';
 import TextField from './TextField';
@@ -16,6 +17,8 @@ import MediaField from './MediaField';
 import TreeSelectField from './TreeSelectField';
 import GroupField from './GroupField';
 import FieldsetField from './FieldsetField';
+
+const LazyCodeEditor = lazy(() => import('./CodeField'));
 
 export default function Field({ errorId, parentName, onDeleteError, ...props }: FieldProps) {
     const { type } = props;
@@ -44,6 +47,12 @@ export default function Field({ errorId, parentName, onDeleteError, ...props }: 
             return <UploadField {...props} />;
         case 'color-palette':
             return <ColorPaletteField {...props} />;
+        case 'code':
+            return (
+                <Suspense fallback={<div>Loading editor...</div>}>
+                    <LazyCodeEditor {...props} />
+                </Suspense>
+            );
         case 'media':
             return <MediaField {...props} />;
         case 'custom':

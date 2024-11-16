@@ -104,6 +104,11 @@ class Str extends Any
         }, $separator, $schema);
     }
 
+    public function code()
+    {
+        return $this->transform('stripslashes');
+    }
+
     public function trim(string $characters = " \n\r\t\v\0")
     {
         return $this->addAfter('trim', $characters);

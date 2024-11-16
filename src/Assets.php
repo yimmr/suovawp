@@ -75,6 +75,14 @@ class Assets
     }
 
     /**
+     * 如果当前未设置entry，则使用提供的入口作为默认.
+     */
+    public function defaultEntry($entry)
+    {
+        return $this->entry($entry);
+    }
+
+    /**
      * 指定Vite入口文件，所有相关依赖都会自动引入.
      *
      * @param string $entry
@@ -185,6 +193,20 @@ class Assets
     public function style(...$handles)
     {
         foreach ($handles as $handle) {
+            $this->styleIds[] = $handle;
+        }
+        return $this;
+    }
+
+    /**
+     * 添加css和js依赖.
+     *
+     * @param string[] $handles
+     */
+    public function bundle(...$handles)
+    {
+        foreach ($handles as $handle) {
+            $this->scriptIds[] = $handle;
             $this->styleIds[] = $handle;
         }
         return $this;

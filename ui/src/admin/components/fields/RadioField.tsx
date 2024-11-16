@@ -1,7 +1,7 @@
 import type { RadioFieldProps } from './types';
 import { RadioControl } from '@wordpress/components';
 import BaseField from './BaseField';
-import useFormRestState from '../hooks/useFormRestState';
+import useFormRestState from '../../hooks/useFormRestState';
 import { convertFieldOptions } from '../utils';
 
 export default function ({

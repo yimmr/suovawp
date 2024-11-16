@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import HelpText from './HelpText';
 import GroupItemField from './GroupItemField';
-import useFormRestState from '../hooks/useFormRestState';
+import useFormRestState from '../../hooks/useFormRestState';
 
 const extractFirstItemFromFieldsIf = (
     value: GroupFieldProps['value'],
