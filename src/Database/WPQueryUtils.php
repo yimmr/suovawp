@@ -11,6 +11,7 @@ class WPQueryUtils
         'ids'      => 'post__in',
         'search'   => 's',
         'status'   => 'post_status',
+        'type'     => 'post_type',
         'user_id'  => 'author',
     ];
 
@@ -123,6 +124,22 @@ class WPQueryUtils
             $args[$key] = [$args[$key]];
         }
         return $args;
+    }
+
+    /**
+     * 创建一个可选的meta条件，类似 `metaWithNotExistsClause` 但没有`$notExistsKey`，不需排序时使用此方法.
+     */
+    public static function metaWithNotExists($key, $type = 'NUMERIC', $value = null, $compare = 'EXISTS', $relation = 'OR')
+    {
+        $meta = ['key' => $key, 'type' => $type, 'compare' => $compare];
+        if (isset($value)) {
+            $meta['value'] = $value;
+        }
+        return [
+            $meta,
+            ['key'     => $key, 'type' => $type, 'compare' => 'NOT EXISTS'],
+            'relation' => $relation,
+        ];
     }
 
     public static function metaWithNotExistsClause($notExistsKey, $key, $type = 'NUMERIC', $value = null, $compare = 'EXISTS', $relation = 'OR')

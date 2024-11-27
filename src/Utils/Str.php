@@ -166,4 +166,9 @@ class Str
         $args = array_map('trim', $args);
         return ['name' => $name, 'args' => $args];
     }
+
+    public static function parseVars($string, $data)
+    {
+        return str_replace(array_map(fn ($str) => "[$str]", array_keys($data)), array_values($data), $string);
+    }
 }

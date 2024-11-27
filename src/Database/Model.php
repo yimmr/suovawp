@@ -2,12 +2,17 @@
 
 namespace Suovawp\Database;
 
+use Suovawp\Utils\DataFormatTrait;
+use Zerofoam\Utils\Func;
+
 /**
  * @template D
  * @template O
  */
 abstract class Model
 {
+    use DataFormatTrait;
+
     protected $data = [];
 
     protected $changed = [];
@@ -20,6 +25,14 @@ abstract class Model
     /** @var int */
     protected $id;
 
+    protected $exists = false;
+
+    protected $instances = [];
+
+    protected $binds = [];
+
+    protected $delayProps = [];
+
     /**
      * @param D|array $data
      * @param O|array $options
@@ -27,15 +40,51 @@ abstract class Model
     public function __construct(array $data = [], array $options = [])
     {
         $this->data = $data;
+        $this->exists = $options['exists'] ?? false;
         if ($options['schema'] ?? null) {
             $this->schema = $options['schema'];
             $this->idKey = $this->schema::ID;
         }
+        $this->handleCreated();
+    }
+
+    protected function handleCreated()
+    {
+    }
+
+    public function __get($name)
+    {
+        if (isset($this->instance[$name])) {
+            return $this->instance[$name];
+        }
+        if (isset($this->binds[$name])) {
+            return $this->instance($name);
+        }
+        return $this->get($name);
+    }
+
+    public function __set($name, $value)
+    {
+        $this->set($name, $value);
+    }
+
+    public function exists()
+    {
+        return $this->exists;
     }
 
     public function getId()
     {
         return $this->id ??= (int) $this->get($this->idKey, 0);
+    }
+
+    public function getCreatedAt($format = '')
+    {
+        if (empty($this->schema) || !$this->schema::CREATED_AT) {
+            return '';
+        }
+        $value = $this->get($this->schema::CREATED_AT, '');
+        return $value && $format ? Func::dateTimeFormat($format, $value) : $value;
     }
 
     public function get($key, $default = null)
@@ -115,5 +164,33 @@ abstract class Model
         $this->fill((array) $data);
         $this->changed = [];
         return true;
+    }
+
+    /**
+     * 关联另一个单例.
+     *
+     * @template C
+     * @param  string $prop 唯一键名，也用作魔术属性名，访问属性时自动实例化
+     * @return C
+     */
+    protected function instance(string $prop)
+    {
+        if (isset($this->instances[$prop])) {
+            return $this->instances[$prop];
+        }
+        $class = $this->binds[$prop];
+        $instance = is_string($class) ? new $class($this->getId(), $this) : $class($this->getId(), $this);
+        $this->instances[$prop] = $instance;
+        return $instance;
+    }
+
+    /**
+     * @param string                                  $prop  唯一键名，也用作魔术属性名，访问属性时自动实例化
+     * @param string|\Closure(int $id, static $model) $class 关联的类名或创建实例的回调
+     */
+    protected function bind($prop, $class)
+    {
+        $this->binds[$prop] = $class;
+        return $this;
     }
 }

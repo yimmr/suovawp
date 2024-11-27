@@ -69,9 +69,7 @@ class WPQueryRefiner
      * 转换参数.
      *
      * @template R
-     *
-     * @param callable(A $args):R $transformer
-     *
+     * @param  callable(A $args):R $transformer
      * @return static<R,T>
      */
     public function transform($transformer)
@@ -88,7 +86,7 @@ class WPQueryRefiner
     }
 
     /**
-     * @param callable(string $by,string $sort,A &$args):array{string,string} $converter 回调必须返回[$by,$sort]数组，可按需修改$args
+     * @param callable(string $by,string $sort,A &$args):array{string,string}|array $converter 回调必须返回[$by,$sort]数组，可按需修改$args
      * @param (callable(string $by,string $sort?):string)|null $builder 创建SQL排序column的回调，未匹配请返回空字符
      * @param string[] $keys 未匹配转换或者存在这些排序键时，使用回调构建SQL排序列
      */
@@ -100,15 +98,26 @@ class WPQueryRefiner
             if (is_array($orderby)) {
                 $newOrderby = [];
                 foreach ($orderby as $oldBy => $oldSort) {
-                    [$by,$sort] = $converter($oldBy, $oldSort, $this->args);
-                    $newOrderby[$by] = $sort;
+                    $orders = $converter($oldBy, $oldSort, $this->args);
+                    if (Arr::isAssoc($orders)) {
+                        $newOrderby = $orders + $newOrderby;
+                    } else {
+                        [$by,$sort] = $orders;
+                        $newOrderby[$by] = $sort;
+                    }
                 }
                 $this->args['orderby'] = $newOrderby;
                 $needFallback = isset($builder) && Arr::some($keys, fn ($k) => isset($orderby[$k]));
             } else {
-                [$by,$sort] = $converter($orderby, $order, $this->args);
-                $this->args['orderby'] = $by;
-                $this->args['order'] = $sort;
+                $orders = $converter($orderby, $order, $this->args);
+                if (Arr::isAssoc($orders)) {
+                    $this->args['orderby'] = $orders;
+                    unset($this->args['order']);
+                } else {
+                    [$by,$sort] = $orders;
+                    $this->args['orderby'] = $by;
+                    $this->args['order'] = $sort;
+                }
                 $needFallback = isset($builder) && in_array($orderby, $keys);
             }
             if ($needFallback) {
@@ -258,5 +267,47 @@ class WPQueryRefiner
             $sql = $subsql ? $subsql.($sql ? ', '.$sql : '') : $sql;
         }
         return $sql;
+    }
+
+    public static function extend(\WP_Query $query, array $props)
+    {
+        foreach ($props as $key => $value) {
+            $query->{$key} = $value;
+        }
+    }
+
+    /**
+     * @param array|callable(\WP_Query):void $props
+     */
+    public static function extendMainQuery($props)
+    {
+        add_action('parse_query', function ($query) use ($props) {
+            if ($query->is_main_query()) {
+                if (is_array($props)) {
+                    self::extend($query, $props);
+                } else {
+                    $props($query);
+                }
+            }
+        });
+    }
+
+    /**
+     * @param array|callable(\WP_Query):void $props
+     */
+    public static function extendMainQueryNonAdmin($props)
+    {
+        if (is_admin()) {
+            return;
+        }
+        add_action('parse_query', function ($query) use ($props) {
+            if (!is_admin() && $query->is_main_query()) {
+                if (is_array($props)) {
+                    self::extend($query, $props);
+                } else {
+                    $props($query);
+                }
+            }
+        });
     }
 }

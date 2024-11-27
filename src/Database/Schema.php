@@ -2,10 +2,12 @@
 
 namespace Suovawp\Database;
 
+use Suovawp\Container;
+
 /**
- * @template M of object
- * @template I of object
- * @template Q of Query
+ * @template-covariant  M of object
+ * @template-covariant  I of object
+ * @template-covariant  Q of Query
  *
  * @phpstan-import-type QueryOptions from Query
  * @phpstan-import-type Wheres from Query as QueryWhere
@@ -39,6 +41,205 @@ class Schema
     /** 自动解析转换JSON数据的字段 */
     public const JSON_FIELDS = [];
 
+    /** 可搜索的字段，query方法解析search参数时使用 */
+    public const SEARCH_FIELDS = [];
+
+    /** @var Container */
+    protected static $container;
+
+    public static function fullTableName()
+    {
+        return DB::fullTableName(static::class);
+    }
+
+    /**
+     * 创建Join数组结构.
+     *
+     * @template A
+     * @template O
+     * @param A|string|QueryWhere|null       $as   可以是别名或`on`条件
+     * @param O|QueryWhere|null              $on
+     * @param 'INNER'|'LEFT'|'RIGHT'|'CROSS' $type
+     * @return array{type:string,table:string,
+     *  as:($as is array?null:A),on:($as is array?A:(O is null?null:O))}
+     */
+    public static function createJoin($as = null, $on = null, $type = 'INNER')
+    {
+        if (isset($as) && !isset($on)) {
+            $on = $as;
+            $as = null;
+        }
+        return ['type' => $type, 'table' => DB::fullTableName(static::class), 'as' => $as, 'on' => $on];
+    }
+
+    /**
+     * @template A
+     * @template O
+     * @param A|string|QueryWhere|null $as 可以是别名或`on`条件
+     * @param O|QueryWhere|null        $on
+     * @return array{type:'LEFT',table:string,
+     *  as:($as is array?null:A),on:($as is array?A:(O is null?null:O))}
+     */
+    public static function createLeftJoin($as = null, $on = null)
+    {
+        return static::createJoin(static::class, $as, $on, 'LEFT');
+    }
+
+    /**
+     * @template A
+     * @template O
+     * @param A|string|QueryWhere|null $as 可以是别名或`on`条件
+     * @param O|QueryWhere|null        $on
+     * @return array{type:'RIGHT',table:string,
+     *  as:($as is array?null:A),on:($as is array?A:(O is null?null:O))}
+     */
+    public static function createRightJoin($as = null, $on = null)
+    {
+        return static::createJoin(static::class, $as, $on, 'RIGHT');
+    }
+
+    /**
+     * @template A
+     * @template O
+     * @param A|string|QueryWhere|null $as 可以是别名或`on`条件
+     * @param O|QueryWhere|null        $on
+     * @return array{type:'CROSS',table:string,
+     *  as:($as is array?null:A),on:($as is array?A:(O is null?null:O))}
+     */
+    public static function createCrossJoin($as = null, $on = null)
+    {
+        return static::createJoin(static::class, $as, $on, 'CROSS');
+    }
+
+    public static function setContainer(Container $container)
+    {
+        static::$container = $container;
+    }
+
+    /**
+     * 获取模型单例，每个主键一个实例.
+     *
+     * @param  I|int $id
+     * @return M
+     */
+    public static function singleton($id)
+    {
+        $object = null;
+        if (!is_numeric($id)) {
+            $object = $id;
+            $id = $object->{static::ID};
+        }
+        $key = static::TABLE.'::'.$id;
+        if (static::$container->hasInstance($key)) {
+            return static::$container->get($key);
+        }
+        return static::$container->instance($key, static::buildSingleton($id, $object));
+    }
+
+    /**
+     * @param int    $id
+     * @param I|null $object
+     */
+    protected static function buildSingleton($id, $object = null)
+    {
+        return static::findById($id);
+    }
+
+    /**
+     * 子类需要覆盖此方法进行具体实例检查.
+     *
+     * @param I $object
+     */
+    public static function entityOf($object)
+    {
+        return is_object($object);
+    }
+
+    /**
+     * @return M|null 提供的对象为假或非实例时返回null
+     */
+    public static function entityProxyIf($object, $exists = true)
+    {
+        if (!$object || !static::entityOf($object)) {
+            return null;
+        }
+        return static::entityProxy($object, $exists);
+    }
+
+    /**
+     * 此方法纯粹创建实例，不进行传值检查，因此确保传入的对象正确.
+     *
+     * @param  I    $object
+     * @param  bool $exists
+     * @return M
+     */
+    public static function entityProxy($object, $exists = true)
+    {
+        $className = static::getModel($object);
+        $model = new $className([], ['schema' => static::class, 'exists' => $exists]);
+        $model->setEntity($object);
+        return $model;
+    }
+
+    /**
+     * @param  I[]  $objects
+     * @param  bool $exists
+     * @return M[]
+     */
+    public static function entityProxyMany($objects, $exists = true)
+    {
+        $result = [];
+        foreach ($objects as $object) {
+            $result[] = static::entityProxy($object, $exists);
+        }
+        return $result;
+    }
+
+    /**
+     * 单纯实例化模型类，不做额外数据转换，可提供初始数据.
+     */
+    public static function newModel(array $data = [], $exists = false)
+    {
+        if (static::MODEL) {
+            $className = static::MODEL;
+            return new $className($data, ['schema' => static::class, 'exists' => $exists]);
+        }
+        return (object) $data;
+    }
+
+    public static function getModel($object)
+    {
+        return static::MODEL;
+    }
+
+    /**
+     * 从数据库中的数据创建模型.
+     *
+     * @param  array|object $row
+     * @return M
+     */
+    public static function buildModel($row, $exists = false)
+    {
+        $className = static::getModel($row);
+        if ($className) {
+            return new $className(static::afterGet((array) $row), ['schema' => static::class, 'exists' => $exists]);
+        }
+        return (object) $row;
+    }
+
+    /**
+     * @param  array[]|object[] $rows
+     * @return M[]
+     */
+    public static function buildModelMany(array $rows, $exists = false)
+    {
+        $result = [];
+        foreach ($rows as $row) {
+            $result[] = static::buildModel($row, $exists);
+        }
+        return $result;
+    }
+
     public static function getPrimaryKeys()
     {
         if (empty(static::PK)) {
@@ -53,39 +254,9 @@ class Schema
         return static::PK;
     }
 
-    public static function createQuery()
+    public static function createQuery($as = null)
     {
-        return DB::createQuery(static::class);
-    }
-
-    /**
-     * @param  array|object $row
-     * @return M
-     */
-    public static function buildModel($row)
-    {
-        if (static::MODEL) {
-            $className = static::MODEL;
-            return new $className(static::toModelData($row), ['schema' => static::class]);
-        }
-        return (object) $row;
-    }
-
-    protected static function toModelData($row)
-    {
-        return static::afterGet((array) $row);
-    }
-
-    /**
-     * @param array[]|object[] $rows
-     */
-    public static function buildModelMany(array $rows)
-    {
-        $result = [];
-        foreach ($rows as $row) {
-            $result[] = static::buildModel($row);
-        }
-        return $result;
+        return DB::createQuery(static::class, $as);
     }
 
     /**
@@ -107,27 +278,30 @@ class Schema
         return static::createQuery()->where($where);
     }
 
+    /** 通过主键判断是否存在这行数据 */
     public static function has($id)
     {
         return static::createQuery()->has($id, static::ID);
     }
 
     /**
-     * @param QueryOptions $options
+     * @param  QueryOptions $options
+     * @return M[]
      */
     public static function findMany(array $options)
     {
         $data = static::createQuery()->setOptions($options)->findMany();
-        return static::buildModelMany($data);
+        return static::buildModelMany($data, true);
     }
 
     /**
-     * @param QueryOptions $options
+     * @param  QueryOptions $options
+     * @return M|null
      */
     public static function findFirst(array $options)
     {
         $data = static::createQuery()->setOptions($options)->findFirst();
-        return $data ? static::buildModel($data) : null;
+        return $data ? static::buildModel($data, true) : null;
     }
 
     /**
@@ -141,19 +315,20 @@ class Schema
         $query = static::createQuery();
         $data = $query->setOptions($options)->findFirst();
         if ($data) {
-            return static::buildModel($data);
+            return static::buildModel($data, true);
         }
         return $fallback($query);
     }
 
     /**
-     * @param string|int      $id
-     * @param string|string[] $columns
+     * @param  string|int      $id
+     * @param  string|string[] $columns
+     * @return M|null
      */
     public static function findById($id, $columns = '*')
     {
         $data = static::createQuery()->select($columns)->where([static::ID => $id])->findFirst();
-        return $data ? static::buildModel($data) : null;
+        return $data ? static::buildModel($data, true) : null;
     }
 
     /**
@@ -172,7 +347,7 @@ class Schema
         $query = static::createQuery();
         $data = $query->select($columns)->where([static::ID => $id])->findFirst();
         if ($data) {
-            return static::buildModel($data);
+            return static::buildModel($data, true);
         }
         return $fallback($query);
     }
@@ -180,9 +355,10 @@ class Schema
     /**
      * 未找到时根据条件插入一行数据.
      *
-     * @param QueryOptions $options  创建时只能提取键值对相等格式的条件，不能提取复杂条件
-     *                               - wpdb的prepare有时可解析数组，但还是通过defaults参数覆盖较好
-     * @param array        $defaults 单独提供或写在options中，提供插入的数据，覆盖从条件提取的值
+     * @param  QueryOptions $options  创建时只能提取键值对相等格式的条件，不能提取复杂条件
+     *                                - wpdb的prepare有时可解析数组，但还是通过defaults参数覆盖较好
+     * @param  array        $defaults 单独提供或写在options中，提供插入的数据，覆盖从条件提取的值
+     * @return M|null
      */
     public static function findOrCreate($options, $defaults = [])
     {
@@ -204,6 +380,8 @@ class Schema
     /**
      * 创建数据并返回模型，自动按需添加CREATED_AT.
      * - 如果创建失败返回null，这根据wpdb的insert_id判断.
+     *
+     * @return M|null
      */
     public static function createAndReturn(array $data)
     {
@@ -340,7 +518,15 @@ class Schema
      */
     public static function getDefaultQueryParams()
     {
-        return [];
+        return [
+            'page'     => 1,
+            'per_page' => 12,
+        ];
+    }
+
+    protected static function paramMapFilter(array $map)
+    {
+        return $map;
     }
 
     /**
@@ -348,17 +534,16 @@ class Schema
      */
     protected static function execQuery(array $params)
     {
-        $query = static::createQuery();
-        $perPage = $params['per_page'] ?? 12;
-        $page = $params['page'] ?? 1;
-        $query->page($page, $perPage);
-        $where = [];
-        foreach (static::FIELDS as $key => $value) {
+        foreach (static::paramMapFilter(['s' => 'search']) as $key => $newKey) {
             if (isset($params[$key])) {
-                $where[$key] = $params[$key];
+                $params[$newKey] = $params[$key];
+                unset($params[$key]);
             }
         }
-        static::prepareQuery($query, $params, $where);
+        $perPage = $params['per_page'];
+        $page = $params['page'];
+        $query = static::createQuery()->page($page, $perPage);
+        static::prepareQuery($query, $params);
         $items = $query->findMany();
         return [
             'query'          => $query,
@@ -374,11 +559,93 @@ class Schema
      * 子类覆盖此方法，根据查询参数修改Query实例，不要进行实际查询.
      *
      * @param Q     $query  查询实例
-     * @param array $params 查询参数
-     * @param array $where  默认构建的与字段同名参数的相等where条件
+     * @param array $params 经过`map`转换后的查询参数
      */
-    protected static function prepareQuery($query, $params, $where)
+    protected static function prepareQuery($query, array $params)
     {
-        $query->where($where);
+        return $query->setOptions(static::paramsToBaseQueryOptions($params));
+    }
+
+    /**
+     * 把查询参数转化为 `QueryOptions` 数组。
+     * 目前存在某些条件或排序时会使用join，因此需要指定表名前缀；
+     * 查询仅允许筛选主表列，因此直接加前缀；.
+     *
+     * @param array        $params       实现了通用解析：
+     *                                   - 所有列自动加指定的表别名前缀
+     *                                   - 分页参数`per_page`和`page`
+     *                                   - 排序参数`orderby`和`order`：默认是若有CREATED_AT则按新到旧排序；`date`解析为CREATED_AT字段；`old`时间相反
+     *                                   - 与表列同名的参数变成 `where` 条件数组
+     *                                   - 识别`search`为模糊搜索，需指定搜索的列名
+     *                                   - 使用`fields`筛选返回的字段
+     * @param string       $pre          表名前缀带点号
+     * @param QueryOptions $options      指定已有的选项，将在基础上追加
+     * @param array        $searchFields 扩展要搜索的列，此组不自动加前缀
+     * @return array{where?:array,
+     * orderby?:array,select:array}
+     */
+    protected static function paramsToBaseQueryOptions(array $params, $pre = '', $options = [], $searchFields = [])
+    {
+        $select = ['*'];
+        foreach (static::FIELDS as $key => $value) {
+            if (isset($params[$key])) {
+                $whereValue = $params[$key];
+                if (is_array($whereValue) && ($key === static::CREATED_AT || $key === static::UPDATED_AT)) {
+                    $whereValue = ['$date' => $whereValue];
+                }
+                $options['where'][$pre.$key] = $whereValue;
+                continue;
+            }
+            if ('fields' == $key) {
+                $select = is_array($value) ? $value : [$value];
+            }
+        }
+        $options['select'] = $pre ? array_map(fn ($field) => $pre.$field, $select) : $select;
+        if (!empty($params['search'])) {
+            $search = $params['search'];
+            $conditions = [];
+            foreach (static::SEARCH_FIELDS as $field) {
+                $conditions[$pre.$field] = ['$contains' => $search];
+            }
+            foreach ($searchFields as $field) {
+                $conditions[$field] = ['$contains' => $search];
+            }
+            if ($conditions) {
+                $conditions['$relation'] = 'OR';
+                if (isset($options['where']['$and'])) {
+                    $options['where']['$and'][] = $conditions;
+                } else {
+                    $options['where']['$and'] = [$conditions];
+                }
+            }
+        }
+        if (!empty($params['orderby'])) {
+            $orderby = is_array($params['orderby']) ? $params['orderby'] : [$params['orderby'] => $params['order'] ?? 'desc'];
+            foreach ($orderby as $by => $sort) {
+                if ('old' == $by) {
+                    $by = 'date';
+                    $sort = 'asc' == $sort ? 'desc' : 'asc';
+                }
+                $by = 'date' == $by ? static::CREATED_AT : $by;
+                $options['orderby'][$pre.$by] = $sort;
+            }
+        } elseif (static::CREATED_AT) {
+            $options['orderby'] = [$pre.static::CREATED_AT => 'desc'];
+        }
+        return $options;
+    }
+
+    protected static function appendSearchWhere(array &$options, array $columns, $search, $pre = '')
+    {
+        $conditions = [];
+        foreach ($columns as $column) {
+            $conditions[$pre.$column] = ['$contains' => $search];
+        }
+        $conditions['$relation'] = 'OR';
+        if (isset($options['where']['$and'])) {
+            $options['where']['$and'][] = $conditions;
+        } else {
+            $options['where']['$and'] = [$conditions];
+        }
     }
 }

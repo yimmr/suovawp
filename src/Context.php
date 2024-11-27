@@ -3,6 +3,7 @@
 namespace Suovawp;
 
 use Suovawp\Contracts\Context as ContractsContext;
+use Suovawp\Database\Schema;
 use Suovawp\Exceptions\AppException;
 use Suovawp\Http\Request;
 use Suovawp\Http\Response;
@@ -22,6 +23,7 @@ use Suovawp\Utils\Strval;
  * @property Config $config
  * @property Option $option   自定义的选项
  * @property Option $wpoption 用于读写无预设前缀的选项，如wordpress内置选项
+ * @property State  $state    自定义状态数据集
  * @property Admin  $admin    管理员界面辅助实例，仅后台可用
  */
 class Context implements ContractsContext
@@ -63,10 +65,12 @@ class Context implements ContractsContext
         $this->container->bind(Response::class);
         $this->container->bind(Config::class);
         $this->container->bind('wpoption', Option::class);
+        $this->container->bind(State::class);
         $this->container->bind(Assets::class);
         if ($this->isAdmin = is_admin()) {
             $this->container->bind(Admin::class);
         }
+        Schema::setContainer($this->container);
     }
 
     public function __get($name)
@@ -90,6 +94,8 @@ class Context implements ContractsContext
                 return $this->container->get('option');
             case 'wpoption':
                 return $this->container->get('wpoption');
+            case 'state':
+                return $this->container->get(State::class);
             case 'admin':
                 return $this->isAdmin ? $this->container->get(Admin::class) : null;
             default:
@@ -114,6 +120,11 @@ class Context implements ContractsContext
     public function isDev()
     {
         return $this->isDebugging();
+    }
+
+    public function isAjax()
+    {
+        return wp_doing_ajax() || wp_is_json_request() || (defined('REST_REQUEST') && REST_REQUEST);
     }
 
     public function isRest()
@@ -168,24 +179,28 @@ class Context implements ContractsContext
         }
         $this->layerEngine = LayerEngine::forward($this->router->rootDir, $path);
         if (!$this->layerEngine->isEmpty()) {
-            $this->loadLayerModelIf($this->layerEngine->getId(), $this->layerEngine->getPage());
+            $this->loadLayerModelIf($this->layerEngine->getId(), $this->layerEngine->getPage(), false);
         }
         $this->nextLayer();
     }
 
-    protected function loadLayerModelIf($routeId, $page = 'page.php')
+    protected function loadLayerModelIf($routeId, $page = 'page.php', $withNode = true)
     {
         if ('/' != $routeId) {
             $segments = explode('/', trim($routeId, '/'));
-            $node = $this->router->root;
             $keys = [];
-            foreach ($segments as $segment) {
-                $node = $node->children[$segment];
-                if (isset($node->param)) {
-                    $keys[] = 'id' == $node->param ? 'detail' : $node->param;
-                } else {
-                    $keys[] = $segment;
+            if ($withNode) {
+                $node = $this->router->root;
+                foreach ($segments as $segment) {
+                    $node = $node->children[$segment];
+                    if (isset($node->param)) {
+                        $keys[] = 'id' == $node->param ? 'detail' : $node->param;
+                    } else {
+                        $keys[] = $segment;
+                    }
                 }
+            } else {
+                $keys = $segments;
             }
             if ('page.php' != $page) {
                 $keys[] = pathinfo($page, PATHINFO_FILENAME);
@@ -257,5 +272,10 @@ class Context implements ContractsContext
     public function json($body, $status = null, $options = 0)
     {
         return wp_send_json($body, $status, $options);
+    }
+
+    public function performance()
+    {
+        return $this->container->singleton(Performance::class, $this);
     }
 }

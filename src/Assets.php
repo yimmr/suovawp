@@ -9,7 +9,7 @@ class Assets
     /** @var Vite|null */
     public $vite;
 
-    public $viteOutDirname = 'assets';
+    public $viteOutDirname = 'dist';
 
     public $vitePublicUrlFunc;
 

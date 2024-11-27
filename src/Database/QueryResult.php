@@ -110,7 +110,10 @@ class QueryResult
         if (!$this->schema) {
             return $this->models = [];
         }
-        return $this->models = $this->schema::buildModelMany($this->items);
+        if ($this->wpQueryArgs) {
+            return $this->models = $this->schema::entityProxyMany($this->items, true);
+        }
+        return $this->models = $this->schema::buildModelMany($this->items, true);
     }
 
     public function getItems()

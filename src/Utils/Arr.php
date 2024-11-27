@@ -52,12 +52,12 @@ class Arr
         return false;
     }
 
-    public static function pick(array $array, ...$keys)
+    public static function pick(array $array, $keys)
     {
         return array_intersect_key($array, array_flip($keys));
     }
 
-    public static function omit(array $array, ...$keys)
+    public static function omit(array $array, $keys)
     {
         return array_diff_key($array, array_flip($keys));
     }

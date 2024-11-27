@@ -13,7 +13,7 @@ use Suovawp\Utils\Arr;
  *      $nin?:array,$between?:array,$regex?:string,$like?:string,
  *      $startsWith:string,$endsWith:string,$contains:string,$date?:array,$switch?:Switch
  * }
- * @phpstan-type Wheres array<string,Condition|array{$or?:Wheres,$and?:Wheres}|mixed>
+ * @phpstan-type Wheres array<string,Condition|array{$or?:Wheres[],$and?:Wheres[]}|mixed>
  * @phpstan-type Join array{type:string,table:string,as?:string,on?:array}
  * @phpstan-type QueryOptions array{
  *      table?:string,as?:string,
@@ -145,12 +145,14 @@ class Query
      *
      * @param Wheres $wheres 键值对条件数组
      *                       - 数组键是列名或特定操作，值是条件的值
-     *                       - 默认是 AND 逻辑，`$or => array` 用于指定 OR 逻辑
      *                       - 支持多层嵌套
+     *                       - 逻辑关系：$or,$and 用索引数组指定一组 `OR`|`AND` 逻辑。（关联数组隐式 `AND` 逻辑，$relation键可修改)
      *                       - 操作符：$eq,$ne,$lt,$lte,$gt,$gte,$in,$nin,$between,$regex,$like,$startsWith,$endsWith,$contains
-     *                       - 逻辑：$or,$and
      *                       - 其他：$exists,$switch,$date
-     *                       - $date使用WP_Date_Query。用$date做字段时，若能从模式获得CREATED_AT，则自动使用CREATED_AT字段，否则无效
+     *                       - $date 使用 `WP_Date_Query` 解析构建条件。
+     *                       - $date 用做条件列时，尝试从Schema::CREATED_AT获取真实列名，获取失败则无效
+     *                       - $exists 只能做条件列，且值不转义
+     *                       - 条件值不需转义时，可加 $raw 操作符
      */
     public function where(array $wheres)
     {
@@ -178,6 +180,12 @@ class Query
         return $this;
     }
 
+    public function as($as)
+    {
+        $this->as = $as;
+        return $this;
+    }
+
     /**
      * @param string|string[] $columns
      */
@@ -198,6 +206,10 @@ class Query
         return $this;
     }
 
+    /**
+     * @param string|array<string,string> $orderby
+     * @param string|null                 $sort
+     */
     public function orderBy($orderby, $sort = 'ASC')
     {
         $this->orderby = is_array($orderby) ? $orderby : [$orderby => $sort];
@@ -219,10 +231,10 @@ class Query
     }
 
     /**
-     * @param string             $table
-     * @param string|Wheres|null $as    可以是别名或`on`条件
-     * @param Wheres|null        $on
-     * @param string             $type  大写
+     * @param string                         $table
+     * @param string|Wheres|null             $as    可以是别名或`on`条件
+     * @param Wheres|null                    $on
+     * @param 'INNER'|'LEFT'|'RIGHT'|'CROSS' $type  大写
      */
     public function join($table, $as = null, $on = null, $type = 'INNER')
     {
@@ -272,7 +284,8 @@ class Query
             $sql .= ' WHERE '.$this->buildWhereClause($this->where);
         }
         if (isset($this->groupby)) {
-            $sql .= ' GROUP BY '.(is_array($this->groupby) ? implode(', ', $this->groupby) : $this->groupby);
+            $func = [$this, 'parseDateBy'];
+            $sql .= ' GROUP BY '.(is_array($this->groupby) ? implode(', ', array_map($func, $this->groupby)) : $func($this->groupby));
         }
         if (isset($this->having)) {
             $sql .= ' HAVING '.$this->buildWhereClause($this->having);
@@ -280,6 +293,7 @@ class Query
         if (isset($this->orderby)) {
             $orderby = '';
             foreach ($this->orderby as $by => $sort) {
+                $by = $this->parseDateBy($by);
                 $orderby .= ", $by ".strtoupper($sort);
             }
             $sql .= ' ORDER BY '.ltrim($orderby, ', ');
@@ -291,6 +305,11 @@ class Query
             $sql .= ' OFFSET '.$this->offset;
         }
         return $this->prepareIf($sql);
+    }
+
+    protected function parseDateBy($by)
+    {
+        return isset($this->defaultDateColumn) && ('$date' == $by || 'date' == $by) ? $this->defaultDateColumn : $by;
     }
 
     public function toCreateSQL($data, $multiple = false)
@@ -329,27 +348,48 @@ class Query
         return $this->prepareIf($sql);
     }
 
-    protected function buildWhereClause($query)
+    protected function buildWhereClause(array $query)
     {
         if (isset($query['$or']) && 1 == count($query)) {
-            return $this->buildSQLCondition($query['$or'], 'OR');
+            return $this->buildSQLLogicCondition($query['$or'], 'OR', false);
+        }
+        if (isset($query['$and']) && 1 == count($query)) {
+            return $this->buildSQLLogicCondition($query['$and'], 'AND', false);
         }
         return $this->buildSQLCondition($query);
     }
 
-    protected function buildSQLCondition($query, $logic = 'AND')
+    protected function buildSQLLogicCondition(array $wheres, string $logic = 'AND', $wrap = true)
+    {
+        $conditions = [];
+        foreach ($wheres as $where) {
+            $condition = $this->buildSQLCondition($where);
+            $conditions[] = $wrap && count($where) > 1 ? '('.$condition.')' : $condition;
+        }
+        return implode(' '.$logic.' ', $conditions);
+    }
+
+    protected function buildSQLCondition(array $query, string $logic = 'AND')
     {
         $conditions = [];
         foreach ($query as $key => $value) {
-            if ('$or' == $key || '$and' == $key) {
-                $conditions[] = '('.$this->buildSQLCondition($value, strtoupper(substr($key, 1))).')';
+            if ('$relation' === $key) {
+                $logic = strtoupper($value);
                 continue;
             }
-            if ('$exists' == $key) {
+            if ('$or' === $key) {
+                $conditions[] = '('.$this->buildSQLLogicCondition($value, 'OR').')';
+                continue;
+            }
+            if ('$and' === $key) {
+                $conditions[] = '('.$this->buildSQLLogicCondition($value, 'AND').')';
+                continue;
+            }
+            if ('$exists' === $key) {
                 $conditions[] = "EXISTS ({$value})";
                 continue;
             }
-            if ('$date' == $key) {
+            if ('$date' === $key) {
                 if (isset($this->defaultDateColumn)) {
                     $conditions[] = $this->parseCondition($this->defaultDateColumn, ['$date' => $value]);
                 }
@@ -362,8 +402,11 @@ class Query
 
     protected function parseCondition($field, array $value)
     {
-        $format = !($value['$raw'] ?? false);
-        unset($value['$raw']);
+        $format = true;
+        if (isset($value['$raw'])) {
+            $format = !$value['$raw'];
+            unset($value['$raw']);
+        }
         if (($count = count($value)) > 1) {
             $conditions = [];
             for ($i = 0; $i < $count; ++$i) {
@@ -417,6 +460,7 @@ class Query
         } elseif (isset($value['$regex'])) {
             $operator = 'REGEXP';
             $value = $value['$regex'];
+            $formatType = '%s';
         } elseif (isset($value['$between'])) {
             $operator = 'BETWEEN';
             $value = $this->arrayValueJoin(' AND ', $value['$between'], $format);
@@ -436,19 +480,23 @@ class Query
         } elseif (isset($value['$like'])) {
             $operator = 'LIKE';
             $value = $value['$like'];
+            $formatType = '%s';
         } elseif (isset($value['$contains'])) {
             $operator = 'LIKE';
             $value = '%'.$value['$contains'].'%';
+            $formatType = '%s';
         } elseif (isset($value['$startsWith'])) {
             $operator = 'LIKE';
             $value = $value['$startsWith'].'%';
+            $formatType = '%s';
         } elseif (isset($value['$endsWith'])) {
             $operator = 'LIKE';
             $value = '%'.$value['$endsWith'];
+            $formatType = '%s';
         } else {
             return false;
         }
-        $value = $format ? $this->valueFormat($value, $field) : $value;
+        $value = $format ? $this->valueFormat($value, $field, $formatType ?? null) : $value;
         return "$field $operator $value";
     }
 
@@ -476,8 +524,15 @@ class Query
         return $switch.' END';
     }
 
-    protected function valueFormat($value, $field)
+    /**
+     * @param '%s'|'%d'|'%f'|null $format 某些情况下，条件值类型不一定和列类型一致，因此提供已知格式化类型以跳过解析
+     */
+    protected function valueFormat($value, $field, $format = null)
     {
+        if ($format) {
+            $this->formatValues[] = $value;
+            return $format;
+        }
         if (isset($this->schema)) {
             if (!empty($this->as)) {
                 $field = 0 === strpos($field, $this->as.'.') ? substr($field, strlen($this->as) + 1) : $field;
@@ -642,6 +697,13 @@ class Query
             $this->where = [$field => $id];
         }
         return $this->db->query($this->toDeleteSQL());
+    }
+
+    public function firstCol($column = null, $x = 0)
+    {
+        isset($column) && $this->select($column);
+        $arr = $this->getCol($x);
+        return reset($arr);
     }
 
     public function getCol($x = 0)

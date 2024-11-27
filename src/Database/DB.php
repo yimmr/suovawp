@@ -4,6 +4,9 @@ namespace Suovawp\Database;
 
 use Suovawp\Utils\Str;
 
+/**
+ * @phpstan-import-type Wheres from Query as QueryWhere
+ */
 class DB
 {
     public const MYSQL_TYPE_MAP = [
@@ -33,11 +36,21 @@ class DB
      * @template T of Schema
      * @param class-string<T> $schema
      */
-    public static function createQuery($schema)
+    public static function createQuery($schema, $as = null)
     {
         global $wpdb;
         $table = $schema::TABLE ?: static::classNameToTableName($schema);
-        return (new Query($wpdb, $wpdb->prefix.$table))->setSchema($schema);
+        return (new Query($wpdb, $wpdb->prefix.$table, $as))->setSchema($schema);
+    }
+
+    /**
+     * @template T of Schema
+     * @param class-string<T> $schema
+     */
+    public static function fullTableName($schema)
+    {
+        global $wpdb;
+        return $wpdb->prefix.($schema::TABLE ?: static::classNameToTableName($schema));
     }
 
     public static function classNameToTableName($schema)
