@@ -8,6 +8,7 @@ interface HelpTextProps {
     linkText?: string;
     className?: string;
     html?: boolean;
+    list?: 'decimal' | 'disc' | 'none';
     help?: string | HelpTextProps | React.ReactNode;
 }
 
@@ -17,7 +18,7 @@ export default function ({ help, ...props }: HelpTextProps) {
     } else if (typeof help === 'object') {
         props = { ...props, ...help };
     }
-    const { children, title, linkHref, linkText, content, className, html = false } = props;
+    const { children, title, linkHref, linkText, content, className, html, list } = props;
     return (
         <div
             className={`tw-p-4 tw-bg-blue-50 tw-rounded-lg tw-border tw-border-blue-200 tw-shadow-sm${
@@ -45,7 +46,9 @@ export default function ({ help, ...props }: HelpTextProps) {
                         </h3>
                     )}
                     <div className="tw-text-sm tw-text-blue-700">
-                        <HelpContent html={html}>{content}</HelpContent>
+                        <HelpContent html={html} list={list}>
+                            {content}
+                        </HelpContent>
                         {children}
                     </div>
                     {linkHref && (
@@ -70,8 +73,8 @@ function HelpContent({
     list = 'decimal',
 }: {
     children: HelpTextProps['content'];
-    html: boolean;
-    list?: 'decimal' | 'disc' | 'none';
+    list?: HelpTextProps['list'];
+    html?: boolean;
 }) {
     if (typeof children === 'string') {
         return html ? <div dangerouslySetInnerHTML={{ __html: children }}></div> : children;
