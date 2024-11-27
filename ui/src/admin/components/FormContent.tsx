@@ -26,7 +26,7 @@ export default function ({
     defaultWidth,
 }: FormContentProps) {
     return fields.map((field, i) => {
-        const { className, width, type, id = '', name } = field;
+        const { className, width, type = 'text', id = '', name } = field;
         const errorId = parentId ? `${parentId}.${id}` : id;
         const clsn = parseClassNames(className, width, type, defaultWidth);
         let errorArr;

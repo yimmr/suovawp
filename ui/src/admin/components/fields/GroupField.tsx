@@ -116,7 +116,12 @@ export default ({
 
     return (
         <BaseField errors={errors?._errors} id={name} label={label}>
-            <div ref={fieldRef} className={className}>
+            <div
+                ref={fieldRef}
+                className={`tw-border tw-border-solid tw-px-4 tw-pb-5 tw-rounded tw-shadow-sm ${
+                    className ? ' ' + className : ''
+                }`}
+            >
                 {help && <HelpText className="tw-my-6" help={help} />}
                 <DndContext
                     sensors={sensors}

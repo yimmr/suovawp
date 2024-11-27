@@ -8,7 +8,7 @@ export default function ({ errors, value, name, label, title, help, disabled }: 
     const newTitle = title || label;
     const newLabel = title ? label : undefined;
     return (
-        <BaseField id={name} errors={errors} label={newLabel} help={help}>
+        <BaseField id={name} errors={errors} label={newLabel} help={help} wp={true}>
             <input ref={inputRef} type="hidden" name={name} defaultValue={checked ? 1 : 0} />
             <div className="!tw-leading-none">
                 <FormToggle

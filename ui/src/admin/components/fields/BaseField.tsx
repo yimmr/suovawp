@@ -6,12 +6,22 @@ import { BaseControl } from '@wordpress/components';
 type BaseProps = React.PropsWithChildren<
     Partial<Pick<BaseFieldProps, 'errors' | 'label' | 'help' | 'id' | 'className'>> & {
         fieldRef?: React.Ref<HTMLDivElement>;
+        wp?: boolean;
     }
 >;
 
-export default function ({ errors, children, label, help, id, fieldRef, className }: BaseProps) {
+export default function ({
+    errors,
+    children,
+    label,
+    help,
+    id,
+    fieldRef,
+    className,
+    wp,
+}: BaseProps) {
     const clsn = className ? ' ' + className : '';
-    if (label) {
+    if (wp || label) {
         return (
             <BaseControl
                 as="label"

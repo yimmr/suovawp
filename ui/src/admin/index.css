@@ -13,4 +13,8 @@
         dark:!tw-scrollbar-thumb-slate-500/50
         /* lg:tw-supports-scrollbars:pr-2; */;
     }
+
+    .tw-field-small input[type='number'] {
+        @apply tw-w-20;
+    }
 }

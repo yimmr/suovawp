@@ -14,10 +14,13 @@ export const parseClassNames = (
     defaultWidth = '1/2'
 ) => {
     const parsed: string[] = [];
-    const w = width || (type === 'number' ? '20' : defaultWidth);
+    const w = width || defaultWidth;
     parsed.push(widthClasses[w as keyof typeof widthClasses] || `md:tw-w-[${w}]`);
     if (className) {
         parsed.push(Array.isArray(className) ? className.join(' ') : className);
+    }
+    if (width != 'full' && type === 'number') {
+        parsed.push('md:tw-field-small');
     }
     return parsed.join(' ');
 };
