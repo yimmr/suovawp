@@ -2,11 +2,12 @@ import React from 'react';
 
 interface HelpTextProps {
     children?: React.ReactNode;
-    content?: string | React.ReactNode;
+    content?: string | React.ReactNode | string[];
     title?: string;
     linkHref?: string;
     linkText?: string;
     className?: string;
+    html?: boolean;
     help?: string | HelpTextProps | React.ReactNode;
 }
 
@@ -16,7 +17,7 @@ export default function ({ help, ...props }: HelpTextProps) {
     } else if (typeof help === 'object') {
         props = { ...props, ...help };
     }
-    const { children, title, linkHref, linkText, content, className } = props;
+    const { children, title, linkHref, linkText, content, className, html = false } = props;
     return (
         <div
             className={`tw-p-4 tw-bg-blue-50 tw-rounded-lg tw-border tw-border-blue-200 tw-shadow-sm${
@@ -44,7 +45,7 @@ export default function ({ help, ...props }: HelpTextProps) {
                         </h3>
                     )}
                     <div className="tw-text-sm tw-text-blue-700">
-                        {content}
+                        <HelpContent html={html}>{content}</HelpContent>
                         {children}
                     </div>
                     {linkHref && (
@@ -61,4 +62,32 @@ export default function ({ help, ...props }: HelpTextProps) {
             </div>
         </div>
     );
+}
+
+function HelpContent({
+    children,
+    html = false,
+    list = 'decimal',
+}: {
+    children: HelpTextProps['content'];
+    html: boolean;
+    list?: 'decimal' | 'disc' | 'none';
+}) {
+    if (typeof children === 'string') {
+        return html ? <div dangerouslySetInnerHTML={{ __html: children }}></div> : children;
+    }
+    if (Array.isArray(children)) {
+        return (
+            <ul className={`tw-list-${list}`}>
+                {children.map((item, idx) =>
+                    html ? (
+                        <li key={idx} dangerouslySetInnerHTML={{ __html: item }}></li>
+                    ) : (
+                        <li key={idx}>{item}</li>
+                    )
+                )}
+            </ul>
+        );
+    }
+    return children;
 }

@@ -34,7 +34,7 @@ export default ({
                             opened ? 'tw-block' : 'tw-hidden'
                         }`}
                     >
-                        {help && <HelpText className="tw-my-6" help={help} />}
+                        {help && <HelpText className="tw-mb-6" help={help} />}
                         <FormContent
                             isChild={true}
                             fields={fields}
