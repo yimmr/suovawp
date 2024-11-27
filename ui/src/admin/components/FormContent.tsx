@@ -47,11 +47,11 @@ export default function ({
         }
 
         let realName = name;
-        if (parentName && parentName?.raw) {
+        if (realName && parentName && parentName?.raw) {
             const { raw, parsed } = parentName;
             realName = realName.startsWith(raw) ? parsed + realName.slice(raw.length) : realName;
         }
-        if (idx != null) {
+        if (realName && idx != null) {
             realName = realName.replace('{{idx}}', idx.toString());
         }
 

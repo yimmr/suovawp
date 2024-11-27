@@ -1,4 +1,4 @@
-import { PropsWithChildren, ReactNode, StrictMode } from 'react';
+import { PropsWithChildren, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import DynamicPortals, { DynamicPortalsProps } from './DynamicPortals';
 import { DataType, EnhancePageProvider } from './EnhancePageContext';
@@ -23,7 +23,7 @@ interface EnhancePageOptions extends DynamicPortalsProps {
     autoRoot?: boolean;
 }
 
-export const mountEnhancePage = (children?: ReactNode, options: EnhancePageOptions = {}) => {
+export const mountEnhancePage = (children?: React.ReactNode, options: EnhancePageOptions = {}) => {
     const { el = '#root', dataEl, className, autoRoot, ...portalsProps } = options;
     const rootElement = resolveRootElement(el, autoRoot);
     if (rootElement == null) return;
