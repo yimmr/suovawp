@@ -107,8 +107,8 @@ class Vite
 
         $info = pathinfo($chunk['src']);
         $id = $this->handle = $this->entryToHandle($entry);
-        $this->addRefinerJS($id);
         $this->enqueueScript($id, $this->url($chunk['file']));
+        $this->addRefinerJS($id);
         if (isset($chunk['css'])) {
             $this->enqueueStyles($chunk['css'], $id);
         }
