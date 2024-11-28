@@ -1,6 +1,7 @@
 {
     "name": "imoncn/suovawp",
     "version": "1.0.0",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Suovawp\\": "src/"
