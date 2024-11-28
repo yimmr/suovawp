@@ -1,5 +1,6 @@
 {
     "name": "imoncn/suovawp",
+    "version": "1.0.0",
     "autoload": {
         "psr-4": {
             "Suovawp\\": "src/"
