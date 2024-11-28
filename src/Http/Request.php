@@ -33,7 +33,7 @@ class Request
     protected $referrer;
     protected $referrerPolicy;
     protected $signal;
-    protected $params;
+    protected $params = [];
 
     public function __construct()
     {
@@ -64,6 +64,16 @@ class Request
             $url .= '#'.$_SERVER['FRAGMENT'];
         }
         return $url;
+    }
+
+    public function getParam(string $name, $default = '')
+    {
+        return $this->params[$name] ?? $default;
+    }
+
+    public function getParams($name = null)
+    {
+        return $this->params;
     }
 
     public function setParams($params)

@@ -131,6 +131,24 @@ class Container
     }
 
     /**
+     * 实时绑定的单例模式，不存在单例时通过容器实例化类，实现依赖注入，可选动态注册别名.
+     *
+     * @template T
+     * @param  class-string<T> $class
+     * @return T
+     */
+    public function getSingleton(string $class, ?string $alias = null)
+    {
+        if (isset($this->instances[$class])) {
+            return $this->instances[$class];
+        }
+        if ($alias) {
+            $this->alias($alias, $class);
+        }
+        return $this->instances[$class] = $this->resolve($class);
+    }
+
+    /**
      * @template T
      * @param  (callable():T)|string $callback 支持类名和非静态方法名数组。所有类和依赖必须先在容器注册
      * @return T

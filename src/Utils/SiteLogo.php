@@ -46,7 +46,7 @@ class SiteLogo
     public function get(string $name = 'main', string $type = 'html')
     {
         if (!isset($this->value[$name])) {
-            $this->value[$name] = ($this->loader)($name);
+            $this->value[$name] = ($this->loader)($name, $this);
         }
         return $this->value[$name][$type];
     }

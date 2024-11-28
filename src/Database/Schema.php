@@ -278,10 +278,10 @@ class Schema
         return static::createQuery()->where($where);
     }
 
-    /** 通过主键判断是否存在这行数据 */
-    public static function has($id)
+    /** 通过主键或指定键判断是否存在这行数据 */
+    public static function has($id, $field = null)
     {
-        return static::createQuery()->has($id, static::ID);
+        return static::createQuery()->has($id, $field ?? static::ID);
     }
 
     /**

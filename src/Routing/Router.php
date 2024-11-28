@@ -325,13 +325,11 @@ class Router
     /**
      * 通过路由构建URL.
      *
-     * @param string               $origin
-     * @param string               $path
      * @param array<string,string> $params 参数键值对，未使用的参数用做查询参数
      *                                     - null或不存在的键跳过可选段，若是必填则停止解析，返回已解析的路径
      *                                     - 扩展参数段可以是数组或字符串，空数组则跳过
      */
-    public function url($origin, $path, $params = [])
+    public function url(string $origin, string $path, array $params = [])
     {
         $urlPath = '';
         $segments = explode('/', trim($path, '/'));

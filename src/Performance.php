@@ -13,6 +13,6 @@ class Performance
     public function outputTimeDiffHTML($class = '')
     {
         $time = $this->timestartDiff(3);
-        echo '<div class="position-relative bg-white p-2 px-3'.$class.'" style="z-index:9999999;"><code>此处耗时：'.$time.'秒</code></div>';
+        echo '<div class="bg-white p-2 px-3'.$class.'" style="position:relative;z-index:9999999;"><code>此处耗时：'.$time.'秒</code></div>';
     }
 }

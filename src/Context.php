@@ -146,6 +146,11 @@ class Context implements ContractsContext
         return $this->error(404, $body);
     }
 
+    /**
+     * @param int $status 调试模式下非400-599HTTP状态码会抛普通异常
+     *
+     * @throws AppException|\Exception
+     */
     public function error($status, $body = null)
     {
         if ($this->isDev() && (!is_numeric($status) || $status < 400 || $status > 599)) {
@@ -154,9 +159,34 @@ class Context implements ContractsContext
         throw new AppException($status, $body);
     }
 
-    public function wpError($code = '', $message = '', $data = 403)
+    /**
+     * @param int|array|mixed $data 整数会变成`[status=>$data]`
+     */
+    public function wpError(string $code = '', string $message = '', $data = 400)
     {
         return new \WP_Error($code, $message, is_int($data) ? ['status' => $data] : $data);
+    }
+
+    /**
+     * @param int|array|mixed $data
+     * @param int|null        $status
+     */
+    public function apiError(string $code = '', string $message = '', $data = 400, $status = null)
+    {
+        if (is_array($data)) {
+            $data['status'] ??= $status ?? 400;
+        } elseif (is_int($data)) {
+            $data = ['status' => $data];
+        } else {
+            $data = ['status' => 400, 'errors' => $data];
+        }
+        return new \WP_Error($code, $message, $data);
+    }
+
+    public function apiSuccess($data = null, string $message = 'ok')
+    {
+        // rest_ensure_response();
+        return ['status' => 'success', 'code' => 200, 'message' => $message, 'data' => $data];
     }
 
     protected function startLayerEngine($id)
@@ -230,10 +260,10 @@ class Context implements ContractsContext
      *                       - 直接传入 `$routeId` 也可
      * @param array  $params 路径参数或查询参数，路径未用的参数将充当查询参数
      */
-    public function redirect($url, $params = [], $status = 302, $by = 'WordPress')
+    public function redirect($url, array $params = [], $status = 302, $by = 'WordPress')
     {
         if (0 === strpos($url, '/')) {
-            $url = $this->router->url($url, $params);
+            $url = $this->router->url(home_url(), $url, $params);
         } elseif ($params) {
             $url = add_query_arg($params, $url);
         }

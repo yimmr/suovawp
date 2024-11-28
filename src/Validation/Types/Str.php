@@ -116,12 +116,12 @@ class Str extends Any
 
     public function toLowerCase()
     {
-        return $this->addAfter('strtolower');
+        return $this->transform('strtolower');
     }
 
     public function toUpperCase()
     {
-        return $this->addAfter('strtoupper');
+        return $this->transform('strtoupper');
     }
 
     protected function sanitizeValue($value, $type = 'text', ...$params)

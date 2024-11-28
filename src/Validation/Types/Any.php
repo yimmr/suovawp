@@ -508,9 +508,8 @@ class Any
     /**
      * 满足条件时才变成必填.
      *
-     * @param string|string[]    $field    字段键名
-     *                                     - 使用 with,with_all,without,without_all 时请用键名数组
-     * @param string             $operator 支持的操作符：=,!=,>,>=,<,<=,in,notin,empty,nonempty,with,with_all,without,without_all
+     * @param string|string[]    $field    字段键名。操作符 `with,with_all,without,without_all` 依赖字段数组
+     * @param string             $operator 支持的操作符：=,!=,>,>=,<,<=,in,nin,empty,nonempty,with,with_all,without,without_all
      * @param scalar|array|mixed $value
      */
     public function requiredIf($field, $operator, $value = null)
@@ -541,7 +540,7 @@ class Any
                 return isset($data[$field]) && ($data[$field] <= $value);
             case 'in':
                 return isset($data[$field]) && in_array($data[$field], $value);
-            case 'notin':
+            case 'nin':
                 return isset($data[$field]) && !in_array($data[$field], $value);
             case 'with':
                 return Arr::some($field, fn ($k) => !empty($data[$k]));
