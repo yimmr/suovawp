@@ -15,6 +15,8 @@ class Option implements \ArrayAccess
 
     private $optionNames;
 
+    private $defaultLoader;
+
     /**
      * @param string $vendor 数据库储存的 `option_name` 前缀，设计模式：每个前缀关联一个类的实例
      */
@@ -39,12 +41,25 @@ class Option implements \ArrayAccess
         $this->load($key);
     }
 
+    /**
+     * 设置加载默认值的回调函数，在数据库不存在顶级选项时调用 .
+     */
+    public function setDefaultLoader(\Closure $loader)
+    {
+        $this->defaultLoader = $loader;
+        return $this;
+    }
+
     public function load(string $name, $reload = false)
     {
         if (!$reload && $this->isFirstKeySet($name)) {
             return;
         }
-        $this->set($name, get_option($this->getFullOptionName($name)));
+        $value = get_option($this->getFullOptionName($name));
+        if (false === $value && $this->defaultLoader) {
+            $value = call_user_func($this->defaultLoader, $name);
+        }
+        $this->value[$name] = $value;
     }
 
     /**

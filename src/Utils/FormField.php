@@ -39,7 +39,8 @@ use Suovawp\Validation\Validator as v;
  *          layout?: 'single'|'normal'|'compact'|'loose'|'icon'|Cols,gap?:number,
  *          ratio?: 'auto'|'square'|'auto'|'3/4'|string,
  *          objectFit?: 'cover'|'contain'|'fill'|'none'|'scale-down'
- *      }
+ *      },
+ *      opened?:bool,initOpen?:bool,
  *      height?:string,language?:string,lang?:string,
  *      theme?:"light"|"dark"|"github"|"github-light"|"github-dark"|"duotone"|"duotone-light"|"duotone-dark"|"sublime"|"atomone"|"dracula",
  */
@@ -112,7 +113,7 @@ class FormField
                 $type = $type->between($field['between'][0], $field['between'][1]);
             }
             if (!isset($field['sanitize'])) {
-                if ($type instanceof TypesStr) {
+                if ($type instanceof TypesStr && 'code' !== $field['type']) {
                     $type->sanitize('text');
                 }
             } elseif ($field['sanitize']) {
@@ -181,12 +182,20 @@ class FormField
     {
         $data = [];
         foreach ($fields as $field) {
-            if (!isset($field['default'])) {
+            if (!isset($field['id'])) {
                 continue;
             }
             if (isset($field['fields'])) {
-                $data[$field['id']] = self::extractDefaultValue($field['fields']);
-            } else {
+                if ('group' === $field['type']) {
+                    if (isset($field['default'])) {
+                        $data[$field['id']] = $field['default'];
+                    } else {
+                        $data[$field['id']] = [self::extractDefaultValue($field['fields'])];
+                    }
+                } else {
+                    $data[$field['id']] = self::extractDefaultValue($field['fields']);
+                }
+            } elseif (isset($field['default'])) {
                 $data[$field['id']] = $field['default'];
             }
         }
@@ -243,6 +252,10 @@ class FormField
                     'group' != $type ? (array) ($newField['value'] ?? []) : [],
                     $newField['name'] ?? $parentName
                 );
+            }
+
+            if ('code' == $newField['type']) {
+                $newField['lang'] ??= 'html';
             }
 
             $newFields[] = $newField;

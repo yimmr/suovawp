@@ -34,25 +34,14 @@ class Request
     protected $referrerPolicy;
     protected $signal;
     protected $params = [];
+    protected $bodyParams = [];
+    protected $query = [];
+    protected $files = [];
+    protected $cookies = [];
+    protected $server = [];
+    protected $allParams;
 
-    public function __construct()
-    {
-        $this->method = $_SERVER['REQUEST_METHOD'];
-        $uri = $_SERVER['REQUEST_URI'];
-        $uri = false !== ($pos = strpos($uri, '?')) ? substr($uri, 0, $pos) : $uri;
-        $this->pathname = $uri;
-        $this->params = [];
-    }
-
-    public function __get($name)
-    {
-        if ('url' == $name) {
-            $this->url ??= new URL($this->getCurrentURL());
-        }
-        return $this->$name;
-    }
-
-    protected function getCurrentURL()
+    public static function createFromGlobals()
     {
         $url = home_url($_SERVER['REQUEST_URI']);
         if (!$url) {
@@ -63,15 +52,53 @@ class Request
         if (!empty($_SERVER['FRAGMENT'])) {
             $url .= '#'.$_SERVER['FRAGMENT'];
         }
-        return $url;
+        $request = new static($url, [
+            'method' => $_SERVER['REQUEST_METHOD'],
+        ]);
+        $request->bodyParams = $_POST;
+        $request->query = $_GET;
+        $request->files = $_FILES;
+        $request->cookies = $_COOKIE;
+        $request->server = $_SERVER;
+        return $request;
     }
 
-    public function getParam(string $name, $default = '')
+    public function __construct($url = '', $options = [])
     {
-        return $this->params[$name] ?? $default;
+        $this->url = new URL($url);
+        $this->pathname = $this->url->pathname;
+        foreach ($options as $key => $value) {
+            $this->$key = $value;
+        }
     }
 
-    public function getParams($name = null)
+    public function __get($name)
+    {
+        return $this->$name;
+    }
+
+    public function all(?string $key = null, $default = '')
+    {
+        $this->allParams ??= $this->bodyParams + $this->query + $this->params;
+        return isset($key) ? ($this->allParams[$key] ?? $default) : $this->allParams;
+    }
+
+    public function body(?string $key = null, $default = '')
+    {
+        return isset($key) ? ($this->bodyParams[$key] ?? $default) : $this->bodyParams;
+    }
+
+    public function query(?string $key = null, $default = '')
+    {
+        return isset($key) ? ($this->query[$key] ?? $default) : $this->query;
+    }
+
+    public function params(?string $key = null, $default = '')
+    {
+        return isset($key) ? ($this->params[$key] ?? $default) : $this->params;
+    }
+
+    public function getParams()
     {
         return $this->params;
     }
@@ -79,6 +106,21 @@ class Request
     public function setParams($params)
     {
         $this->params = $params;
+    }
+
+    public function server(?string $key = null, $default = null)
+    {
+        return isset($key) ? ($this->server[$key] ?? $default) : $this->server;
+    }
+
+    public function cookie(?string $key = null, $default = '')
+    {
+        return isset($key) ? ($this->cookies[$key] ?? $default) : $this->cookies;
+    }
+
+    public function ip()
+    {
+        return (string) filter_var($this->server('REMOTE_ADDR', ''), FILTER_VALIDATE_IP);
     }
 
     public function formData()

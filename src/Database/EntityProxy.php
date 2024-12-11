@@ -14,6 +14,12 @@ class EntityProxy extends Model
     /** @var E|null */
     protected $entity;
 
+    /** @return E|null */
+    public function getEntity()
+    {
+        return $this->entity;
+    }
+
     /**
      * @param E $entity
      */

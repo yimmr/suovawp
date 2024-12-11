@@ -52,6 +52,25 @@ class Schema
         return DB::fullTableName(static::class);
     }
 
+    public static function getDefault()
+    {
+        $data = [];
+        foreach (static::FIELDS as $key => $field) {
+            $data[$key] = $field['default'] ?? null;
+        }
+        return $data;
+    }
+
+    public static function getColumns()
+    {
+        return array_keys(static::FIELDS);
+    }
+
+    public static function exists()
+    {
+        return DB::tableExists(static::fullTableName());
+    }
+
     /**
      * 创建Join数组结构.
      *
@@ -129,7 +148,7 @@ class Schema
             $object = $id;
             $id = $object->{static::ID};
         }
-        $key = static::TABLE.'::'.$id;
+        $key = static::MODEL.'::'.$id;
         if (static::$container->hasInstance($key)) {
             return static::$container->get($key);
         }
@@ -302,6 +321,18 @@ class Schema
     {
         $data = static::createQuery()->setOptions($options)->findFirst();
         return $data ? static::buildModel($data, true) : null;
+    }
+
+    /**
+     * 查询最新的一条
+     *
+     * @param  QueryOptions $options
+     * @return M|null
+     */
+    public static function latestFirst(array $options)
+    {
+        $options['orderby'][static::CREATED_AT] = 'DESC';
+        return static::findFirst($options);
     }
 
     /**
@@ -573,11 +604,13 @@ class Schema
      *
      * @param array        $params       实现了通用解析：
      *                                   - 所有列自动加指定的表别名前缀
-     *                                   - 分页参数`per_page`和`page`
-     *                                   - 排序参数`orderby`和`order`：默认是若有CREATED_AT则按新到旧排序；`date`解析为CREATED_AT字段；`old`时间相反
-     *                                   - 与表列同名的参数变成 `where` 条件数组
-     *                                   - 识别`search`为模糊搜索，需指定搜索的列名
-     *                                   - 使用`fields`筛选返回的字段
+     *                                   - 条件：与列同名参数变成条件数组，数组`created_at和updated_at`解析为`date_query`条件
+     *                                   - 分页：`per_page`和`page`参数
+     *                                   - 排序: `orderby`和`order`参数
+     *                                   - - 有CREATED_AT时默认按新到旧排序
+     *                                   - - `date`解析为CREATED_AT字段；`old`时间相反
+     *                                   - 搜索：`search`参数为模糊搜索，需指定搜索的列名
+     *                                   - 选择：解析`fields`参数，若已提供`select`选项则不解析
      * @param string       $pre          表名前缀带点号
      * @param QueryOptions $options      指定已有的选项，将在基础上追加
      * @param array        $searchFields 扩展要搜索的列，此组不自动加前缀
@@ -600,7 +633,7 @@ class Schema
                 $select = is_array($value) ? $value : [$value];
             }
         }
-        $options['select'] = $pre ? array_map(fn ($field) => $pre.$field, $select) : $select;
+        $options['select'] ??= $pre ? array_map(fn ($field) => $pre.$field, $select) : $select;
         if (!empty($params['search'])) {
             $search = $params['search'];
             $conditions = [];
@@ -647,5 +680,40 @@ class Schema
         } else {
             $options['where']['$and'] = [$conditions];
         }
+    }
+
+    /** 打印输出即将执行的SQL语句，用于调试 */
+    public static function dumpSQL($callback = null)
+    {
+        $func = fn ($query) => function_exists('dump') ? dump($query) : var_dump($query);
+        add_filter('query', $func);
+        $cancel = fn () => remove_filter('query', $func);
+        if ($callback) {
+            $callback();
+            $cancel();
+            return;
+        }
+        return $cancel;
+    }
+
+    /**
+     * @return int|string|false 返回主键值，失败返回false
+     */
+    public static function save(array $data, $pk = null)
+    {
+        $pk ??= static::ID;
+        $pkValue = $data[$pk] ?? null;
+        unset($data[$pk]);
+        if (!$pkValue || !static::has($pkValue, $pk)) {
+            return static::create($data);
+        }
+        $result = static::update([
+            'where' => [$pk => $pkValue],
+            'data'  => $data,
+        ]);
+        if ($result > 0) {
+            return $pkValue;
+        }
+        return static::has($pkValue, $pk) ? $pkValue : static::create($data);
     }
 }

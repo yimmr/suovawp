@@ -176,4 +176,15 @@ class DB
         }
         return true;
     }
+
+    public static function migrateTable($oldTable, $newTable, $autoPrefix = true)
+    {
+        return (new Migrate())->migrateTable($oldTable, $newTable, $autoPrefix);
+    }
+
+    public static function tableExists($table)
+    {
+        global $wpdb;
+        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+    }
 }

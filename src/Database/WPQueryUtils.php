@@ -35,12 +35,12 @@ class WPQueryUtils
         'ids'      => 'include',
     ];
 
-    public static function wpQueryToQueryResultProps($params, $args)
+    public static function wpQueryToQueryResultProps($params, $args, ?\WP_Query $query = null)
     {
-        $query = new \WP_Query($args);
+        $query ??= new \WP_Query($args);
         return [
             'query'         => $query,
-            'items'         => $query->posts,
+            'items'         => $query->posts ?: [],
             'total'         => $query->found_posts,
             'pages'         => (int) $query->max_num_pages,
             'per_page'      => (int) $query->get('posts_per_page', 1),
@@ -65,8 +65,8 @@ class WPQueryUtils
             $items = $query->query($args) ?: [];
             $total = null;
         }
-        $offset = (int) $query->query_vars['offset'];
-        $number = (int) $query->query_vars['number'];
+        $offset = (int) ($query->query_vars['offset'] ?? 0);
+        $number = (int) ($query->query_vars['number'] ?? 0);
         return [
             'query'          => $query,
             'items'          => $items,

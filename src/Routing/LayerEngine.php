@@ -57,12 +57,14 @@ class LayerEngine
         if (false !== strpos($basename, '.')) {
             $page = $basename;
             $path = dirname($path);
+            $server = pathinfo($basename, PATHINFO_FILENAME);
+            $server = 'page' === $server ? 'server' : $server.'.server';
         }
         $engine = new self($root, $path);
         if (isset($page)) {
             $engine->setPage($page);
         }
-        $engine->server();
+        $engine->server($server ?? 'server');
         $engine->buildLayersIf();
         return $engine;
     }
@@ -94,9 +96,9 @@ class LayerEngine
         return $this;
     }
 
-    protected function server()
+    protected function server($name = 'server')
     {
-        $file = $this->root.$this->subdir.DIRECTORY_SEPARATOR.'server.php';
+        $file = $this->root.$this->subdir.DIRECTORY_SEPARATOR.$name.'.php';
         if (file_exists($file)) {
             $this->started = true;
             $this->includeFile($file, function ($error) {

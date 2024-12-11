@@ -22,6 +22,12 @@ trait DataAccessorTrait
     {
     }
 
+    public function fill(array $data)
+    {
+        $this->value = $data + $this->value;
+        return $this;
+    }
+
     /** 设置根数据 */
     public function setValue(array $value)
     {

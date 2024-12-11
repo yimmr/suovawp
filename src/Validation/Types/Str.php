@@ -59,7 +59,9 @@ class Str extends Any
             case 'passwd':
                 return UtilsStr::isPasswd($value, $params);
             case 'url':
-                return false !== filter_var($value, FILTER_VALIDATE_URL);
+                return (bool) filter_var($value, FILTER_VALIDATE_URL);
+            case 'domain':
+                return (bool) filter_var($value, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME);
             case 'emoji':
                 return UtilsStr::isEmoji($value);
             case 'datetime':
@@ -186,6 +188,11 @@ class Str extends Any
     public function url($message = '%1$s不是有效的URL地址')
     {
         return $this->addRule('url', $message);
+    }
+
+    public function domain($message = '%1$s不是有效的域名')
+    {
+        return $this->addRule('domain', $message);
     }
 
     public function emoji($message = '%1$s不是有效的emoji表情')

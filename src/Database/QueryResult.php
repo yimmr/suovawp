@@ -23,12 +23,16 @@ class QueryResult
     /** @var Item[] */
     protected $items = [];
 
+    /** @var int|null */
     protected $page;
 
+    /** @var int|null */
     protected $perPage;
 
+    /** @var int|null */
     protected $total;
 
+    /** @var int|null */
     protected $pages;
 
     /** @var Params */
@@ -42,7 +46,7 @@ class QueryResult
 
     protected $totalCallback;
 
-    protected $basePaginationArgs = [];
+    protected $basePaginateArgs = [];
 
     protected $schema;
 
@@ -123,7 +127,7 @@ class QueryResult
 
     public function total()
     {
-        return $this->total ??= call_user_func($this->totalCallback);
+        return $this->total ??= (int) call_user_func($this->totalCallback);
     }
 
     public function getPages()
@@ -136,6 +140,16 @@ class QueryResult
         return $this->params;
     }
 
+    public function param($key, $default = null)
+    {
+        return $this->params[$key] ?? $default;
+    }
+
+    public function getParam($key, $default = null)
+    {
+        return $this->params[$key] ?? $default;
+    }
+
     public function getWPQueryArgs()
     {
         return $this->wpQueryArgs;
@@ -146,9 +160,9 @@ class QueryResult
      *
      * @param array<string,mixed> $args
      */
-    public function setBasePaginationArgs($args)
+    public function setBasePaginateArgs($args)
     {
-        $this->basePaginationArgs = $args;
+        $this->basePaginateArgs = $args;
         return $this;
     }
 
@@ -158,24 +172,25 @@ class QueryResult
      * @param mixed $
      * @param array<string,mixed> $args 额外自定义参数
      *                                  - param 页码查询参数名
-     *                                  - async_base 是否自动为异步请求生成基础URL
      */
-    public function buildPaginationArgs($args = [])
+    public function getPaginateArgs($args = [])
     {
-        $args += $this->basePaginationArgs;
-        $args['total'] = $this->total();
+        $args += $this->basePaginateArgs;
+        $args['total'] = $this->pages;
         $args['current'] = $this->page;
-        if (!array_key_exists('base', $args)) {
-            if ($args['async_base'] ?? false) {
-                $url = wp_get_referer() ?: home_url();
-                $args['base'] = trailingslashit(explode('?', $url)[0]).'%_%';
-                $args += [
-                    'param'       => 'paged',
-                    'remove_args' => ['action'],
-                ];
-            }
-            unset($args['async_base']);
-        }
         return $args;
+    }
+
+    public function getPaginateArgsForAjax($args = [])
+    {
+        if (!array_key_exists('base', $args)) {
+            $url = wp_get_referer() ?: home_url();
+            $args['base'] = trailingslashit(explode('?', $url)[0]).'%_%';
+            $args += [
+                'param'       => 'paged',
+                'remove_args' => ['action'],
+            ];
+        }
+        return $this->getPaginateArgs($args);
     }
 }

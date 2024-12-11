@@ -27,6 +27,32 @@ class Migrate
         static::$isMigrating = false;
     }
 
+    public function migrateTable($oldTable, $newTable, $autoPrefix = true)
+    {
+        global $wpdb;
+        if ($autoPrefix) {
+            $oldTable = $wpdb->prefix.$oldTable;
+            $newTable = $wpdb->prefix.$newTable;
+        }
+        if (!DB::tableExists($oldTable)) {
+            return false;
+        }
+        if (!DB::tableExists($newTable)) {
+            return $wpdb->query("RENAME TABLE `$oldTable` TO `$newTable`");
+        } else {
+            $rows = $wpdb->get_results("SELECT * FROM `{$newTable}`", ARRAY_A);
+            if ($rows) {
+                $query = new Query($wpdb, $oldTable);
+                $query->createMany($rows);
+                if ($query->hasError()) {
+                    return false;
+                }
+            }
+            $wpdb->query("DROP TABLE `{$newTable}`");
+            return $wpdb->query("RENAME TABLE `$oldTable` TO `$newTable`");
+        }
+    }
+
     /**
      * @template T of Schema
      * @param class-string<T> $schema

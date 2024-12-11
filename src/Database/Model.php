@@ -3,7 +3,7 @@
 namespace Suovawp\Database;
 
 use Suovawp\Utils\DataFormatTrait;
-use Zerofoam\Utils\Func;
+use Suovawp\Utils\Date;
 
 /**
  * @template D
@@ -54,8 +54,8 @@ abstract class Model
 
     public function __get($name)
     {
-        if (isset($this->instance[$name])) {
-            return $this->instance[$name];
+        if (isset($this->instances[$name])) {
+            return $this->instances[$name];
         }
         if (isset($this->binds[$name])) {
             return $this->instance($name);
@@ -68,6 +68,11 @@ abstract class Model
         $this->set($name, $value);
     }
 
+    public function toArray()
+    {
+        return $this->data;
+    }
+
     public function exists()
     {
         return $this->exists;
@@ -78,13 +83,23 @@ abstract class Model
         return $this->id ??= (int) $this->get($this->idKey, 0);
     }
 
+    public function delete()
+    {
+        return !empty($this->schema) && $this->schema::delete($this->getId());
+    }
+
     public function getCreatedAt($format = '')
     {
         if (empty($this->schema) || !$this->schema::CREATED_AT) {
             return '';
         }
         $value = $this->get($this->schema::CREATED_AT, '');
-        return $value && $format ? Func::dateTimeFormat($format, $value) : $value;
+        return $value && $format ? Date::format($format, $value) : $value;
+    }
+
+    public function has($key)
+    {
+        return isset($this->data[$key]);
     }
 
     public function get($key, $default = null)
@@ -115,35 +130,12 @@ abstract class Model
         if (!$schema = $this->schema) {
             return false;
         }
-        $pk = $schema::ID;
-        $pkValue = $this->get($pk);
-        $data = $this->data;
-        unset($data[$pk]);
-        if (!$pkValue || !$schema::has($pkValue)) {
-            $id = $schema::create($data);
-            if ($id) {
-                $this->data[$pk] = $id;
-            }
-            return (bool) $id;
+        $id = $this->schema::save($this->data);
+        if (false === $id) {
+            return false;
         }
-        // 还没想法，先全部更新吧
-        // $changedData = array_intersect_key($data, $this->changed);
-        return false !== $schema::updateOr(
-            [
-                'where' => [$pk => $pkValue],
-                'data'  => $data,
-            ],
-            function () use ($pk, $data, $schema, $pkValue) {
-                if ($schema::has($pkValue)) {
-                    return true;
-                }
-                $id = $schema::create($data);
-                if ($id) {
-                    $this->data[$pk] = $id;
-                }
-                return (bool) $id;
-            }
-        );
+        $this->data[$schema::ID] = $id;
+        return true;
     }
 
     /** 重新从数据库加载数据 */
@@ -191,6 +183,12 @@ abstract class Model
     protected function bind($prop, $class)
     {
         $this->binds[$prop] = $class;
+        return $this;
+    }
+
+    public function removeInstance(string $prop)
+    {
+        unset($this->instances[$prop]);
         return $this;
     }
 }

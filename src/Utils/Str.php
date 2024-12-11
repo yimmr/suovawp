@@ -171,4 +171,9 @@ class Str
     {
         return str_replace(array_map(fn ($str) => "[$str]", array_keys($data)), array_values($data), $string);
     }
+
+    public static function toArr($value)
+    {
+        return explode(',', str_replace(['、', '，'], ',', $value));
+    }
 }

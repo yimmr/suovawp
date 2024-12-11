@@ -34,6 +34,9 @@ abstract class Meta
 
     protected static $instances = [];
 
+    /** 预定义强制转换的元数据类型，仅支持原始键 */
+    protected $schema = [];
+
     public function __construct($id)
     {
         $this->id = (int) $id;
@@ -186,6 +189,28 @@ abstract class Meta
         return $this;
     }
 
+    public function getCast($key, $default = null)
+    {
+        $key = $this->key($key);
+        if (!isset($this->schema[$key])) {
+            return $this->get($key, $default);
+        }
+        $keySchema = $this->schema[$key];
+        $type = $keySchema['type'] ?? 'string';
+        switch ($type) {
+            case 'array':
+                return $this->array($key, $default ?? ($keySchema['default'] ?? []));
+            case 'boolean':
+                return $this->boolean($key, $default ?? ($keySchema['default'] ?? false));
+            case 'integer':
+                return $this->integer($key, $default ?? ($keySchema['default'] ?? 0));
+            case 'numeric':
+                return $this->numeric($key, $default ?? ($keySchema['default'] ?? 0));
+            default:
+                return $this->string($key, $default ?? ($keySchema['default'] ?? ''));
+        }
+    }
+
     /**
      * 把原始key的元数据数组转为预设的别名key.
      */
@@ -197,6 +222,30 @@ abstract class Meta
             $value[$alias[$key] ?? $key] = $value;
         }
         return $value;
+    }
+
+    /** 返回别名和没有别名的原始键，仅类本身定义的键，可覆盖此方法添加其他值. */
+    public function keys()
+    {
+        return array_keys($this->alias);
+    }
+
+    /** 返回实际存储的键，仅类本身定义的键，可覆盖此方法添加其他值. */
+    public function metaKeys()
+    {
+        return array_values($this->alias);
+    }
+
+    /** 未实现！返回别名和没有别名的原始键，类和父类定义的键. */
+    public function allKeys()
+    {
+        return $this->getKeys();
+    }
+
+    /** 未实现！ 返回实际存储的键，类和父类定义的键. */
+    public function allMetaKeys()
+    {
+        return $this->metaKeys();
     }
 
     /** 仅反回特定类型需要的meta键，用于批量获取，默认是从别名列表中的值，可覆盖此方法添加其他值 */
@@ -211,7 +260,7 @@ abstract class Meta
         $alias = array_flip($this->alias);
         $value = [];
         foreach ($this->getKeys() as $key) {
-            $value[$alias[$key] ?? $key] = $this->get($key);
+            $value[$alias[$key] ?? $key] = $this->getCast($key);
         }
         return $value;
     }
@@ -221,7 +270,7 @@ abstract class Meta
     {
         $value = [];
         foreach ($this->getKeys() as $key) {
-            $value[$key] = $this->get($key);
+            $value[$key] = $this->getCast($key);
         }
         return $value;
     }

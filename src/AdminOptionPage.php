@@ -251,4 +251,31 @@ class AdminOptionPage extends AdminPageModel
         }
         return $name;
     }
+
+    public static function extractDefaultValue($name, $base, Context $ctx)
+    {
+        $pos = strpos($name, '_');
+        if (false !== $pos) {
+            $newName = str_replace('_', '/', $name);
+            $value = $ctx->config($base.'/'.$newName);
+            if (empty($value)) {
+                $settings = $ctx->config($base.'/'.substr($name, 0, $pos).'/index');
+                if (isset($settings['tabs'])) {
+                    $tabId = substr($name, $pos + 1);
+                    foreach ($settings['tabs'] as $tab) {
+                        if ($tab['id'] === $tabId) {
+                            $value = is_string($tab['fields']) ? $ctx->config($tab['fields']) : $tab['fields'];
+                        }
+                    }
+                }
+            }
+        }
+        if (empty($value)) {
+            $value = $ctx->config($base.'/'.$name);
+        }
+        if (empty($value)) {
+            return null;
+        }
+        return FormField::extractDefaultValue($value);
+    }
 }

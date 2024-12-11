@@ -88,12 +88,12 @@ class Container
      * @param  class-string<T>|\Closure(static):O $concrete
      * @return T|O
      */
-    protected function resolve($concrete, $params = [])
+    protected function resolve($concrete, $params = [], $method = 'get')
     {
         if ($concrete instanceof \Closure) {
             return $concrete($this);
         }
-        return ArgumentResolver::i()->build($concrete, fn ($id) => $this->get($id), $params);
+        return ArgumentResolver::i()->build($concrete, fn ($id) => $this->{$method}($id), $params);
     }
 
     /**
@@ -145,7 +145,7 @@ class Container
         if ($alias) {
             $this->alias($alias, $class);
         }
-        return $this->instances[$class] = $this->resolve($class);
+        return $this->instances[$class] = $this->resolve($class, [], 'getSingleton');
     }
 
     /**

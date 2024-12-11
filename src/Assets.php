@@ -40,6 +40,8 @@ class Assets
 
     private $optionLoader;
 
+    private $defaultEntry;
+
     public function __clone()
     {
         $this->vite = null;
@@ -79,7 +81,8 @@ class Assets
      */
     public function defaultEntry($entry)
     {
-        return $this->entry($entry);
+        $this->defaultEntry = $entry;
+        return $this;
     }
 
     /**
@@ -135,6 +138,9 @@ class Assets
         }
         if (isset($this->vite)) {
             $this->vite->enqueueScripts();
+        } elseif ($this->defaultEntry) {
+            $this->entry($this->defaultEntry);
+            $this->vite && $this->vite->enqueueScripts();
         }
         $this->localizeOptions($this->getHandle());
         foreach ($this->afterCallbacks as $callback) {

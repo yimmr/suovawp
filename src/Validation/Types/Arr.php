@@ -236,7 +236,7 @@ class Arr extends Any
      *
      * @param TSchema[] $schema
      */
-    public function extend($schema)
+    public function extend(array $schema)
     {
         if ($this->isAssoc) {
             foreach ($schema as $key => $value) {

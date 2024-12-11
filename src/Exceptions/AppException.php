@@ -6,6 +6,9 @@ class AppException extends \Exception
 {
     protected $body;
 
+    /** @var static|null */
+    public static $lastError;
+
     public function __construct($status, $body = null, $previous = null)
     {
         if (is_string($body)) {
@@ -15,7 +18,8 @@ class AppException extends \Exception
         } else {
             $this->body = ['message' => "Error: $status"];
         }
-        parent::__construct($body['message'] ?? '', $status, $previous);
+        parent::__construct($this->body['message'] ?? '', $status, $previous);
+        static::$lastError = $this;
     }
 
     public function __toString()

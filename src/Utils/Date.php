@@ -34,11 +34,9 @@ class Date
      * 创建DateTime对象，失败不抛异常.
      *
      * @template T
-     *
-     * @param string                        $datetime
-     * @param \DateTimeZone|null            $timezone
-     * @param T|callable(\Throwable $th): T $catchValue 失败时返回值或回调函数的执行结果
-     *
+     * @param  string                        $datetime
+     * @param  \DateTimeZone|null            $timezone
+     * @param  T|callable(\Throwable $th): T $catchValue 失败时返回值或回调函数的执行结果
      * @return \DateTime|T
      */
     public static function safeCreate($datetime = 'now', $timezone = null, $catchValue = null)
@@ -69,7 +67,6 @@ class Date
      * 日期时间或时间戳通用的格式化.
      *
      * @template T
-     *
      * @param string             $format
      * @param string|int         $datetime 支持Unix时间戳或日期时间
      *                                     -  应使用`date`函数格式化 `current_time` 的时间戳
@@ -89,7 +86,6 @@ class Date
      * 修改后再格式化，日期时间和时间戳通用.
      *
      * @template T
-     *
      * @param string             $format
      * @param string|int         $datetime 支持Unix时间戳或日期时间
      * @param string             $modify
@@ -155,9 +151,8 @@ class Date
     /**
      * 判断任意个日期时间是否都是指定格式.
      *
-     * @param string $format
-     * @param mixed  $dates  任意个日期时间字符串
-     *
+     * @param  string $format
+     * @param  mixed  $dates  任意个日期时间字符串
      * @return bool
      */
     public static function isSameFormat($format, ...$dates)
@@ -173,8 +168,7 @@ class Date
     /**
      *  判断给定两个时间格式化后是否一样.
      *
-     * @param mixed $dates 支持时间戳或日期时间字符串
-     *
+     * @param  mixed $dates 支持时间戳或日期时间字符串
      * @return bool
      */
     public static function isDatesFormatedEqual($format = 'Y-m-d', ...$dates)
@@ -200,8 +194,7 @@ class Date
     /**
      * 判断给定值是否是合法时间戳.
      *
-     * @param string $since 起始时间，还可用于限制范围
-     *
+     * @param  string $since 起始时间，还可用于限制范围
      * @return bool
      */
     public static function isTimestamp($value, $since = '@0')
@@ -288,5 +281,21 @@ class Date
             $result[] = $date->format($format);
         }
         return $result;
+    }
+
+    public static function formatSeconds($seconds)
+    {
+        if ($seconds <= 60) {
+            return $seconds.'秒';
+        }
+        $minutes = $seconds / 60;
+        if ($minutes < 60) {
+            return floor($minutes).'分钟';
+        }
+        $hours = $minutes / 60;
+        if ($hours < 60) {
+            return floor($hours).'小时';
+        }
+        return floor($hours / 24).'天';
     }
 }

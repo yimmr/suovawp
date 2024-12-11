@@ -11,6 +11,9 @@ use Suovawp\Routing\LayerEngine;
 use Suovawp\Routing\Router;
 use Suovawp\Utils\SingletonTrait;
 use Suovawp\Utils\Strval;
+use Suovawp\Utils\URL;
+use Suovawp\Validation\Types\Any;
+use Suovawp\Validation\ValidatorException;
 
 /**
  * @property array    $params
@@ -25,6 +28,7 @@ use Suovawp\Utils\Strval;
  * @property Option $wpoption 用于读写无预设前缀的选项，如wordpress内置选项
  * @property State  $state    自定义状态数据集
  * @property Admin  $admin    管理员界面辅助实例，仅后台可用
+ * @property URL    $url      当前请求的URL
  */
 class Context implements ContractsContext
 {
@@ -61,7 +65,7 @@ class Context implements ContractsContext
         $this->container->instance(static::class, $this);
         $this->container->bind(static::class, null, ContractsContext::class);
         $this->container->alias(self::class, static::class);
-        $this->container->bind(Request::class);
+        $this->container->bind(Request::class, fn () => Request::createFromGlobals());
         $this->container->bind(Response::class);
         $this->container->bind(Config::class);
         $this->container->bind('wpoption', Option::class);
@@ -98,6 +102,8 @@ class Context implements ContractsContext
                 return $this->container->get(State::class);
             case 'admin':
                 return $this->isAdmin ? $this->container->get(Admin::class) : null;
+            case 'url':
+                return $this->request->url;
             default:
                 return null;
         }
@@ -139,6 +145,29 @@ class Context implements ContractsContext
         $restBase = parse_url(rest_url(), PHP_URL_PATH);
         $result = $restBase && 0 === strpos(trim($_SERVER['REQUEST_URI'], '/').'/', trim($restBase, '/').'/');
         return $this->isRestRequest = $result;
+    }
+
+    /**
+     * @template T
+     * @param T|Any                                $schema
+     * @param array|null                           $data    未提供时使用`request->all()`参数
+     * @param callable(ValidatorException, static) $onError
+     */
+    public function validated(Any $schema, $data = null, $onError = null)
+    {
+        $result = $schema->safeParse($data ?? $this->request->all());
+        if ($result['success']) {
+            return $result['data'];
+        }
+        if ($onError) {
+            return $onError($result['error'], $this);
+        }
+        $this->notFound();
+    }
+
+    public function getPageError()
+    {
+        return AppException::$lastError;
     }
 
     public function notFound($body = 'Page not found')
@@ -278,6 +307,11 @@ class Context implements ContractsContext
         return $this->routeId ??= new Strval($this->route->id ?? '');
     }
 
+    public function param($name, $default = '')
+    {
+        return $this->request->params($name, $default);
+    }
+
     /** 指定Vite入口文件，所有相关依赖都会自动引入. */
     public function entry($entry)
     {
@@ -297,6 +331,11 @@ class Context implements ContractsContext
     public function wpoption(string $key, $default = null)
     {
         return $this->option->get($key, $default);
+    }
+
+    public function state(string $key, $default = null)
+    {
+        return $this->state->get($key, $default);
     }
 
     public function json($body, $status = null, $options = 0)

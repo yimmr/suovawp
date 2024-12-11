@@ -14,7 +14,7 @@ use Suovawp\Utils\Arr;
  *      $startsWith:string,$endsWith:string,$contains:string,$date?:array,$switch?:Switch
  * }
  * @phpstan-type Wheres array<string,Condition|array{$or?:Wheres[],$and?:Wheres[]}|mixed>
- * @phpstan-type Join array{type:string,table:string,as?:string,on?:array}
+ * @phpstan-type Join array{type:string,table:string,as?:string,on?:array|string}
  * @phpstan-type QueryOptions array{
  *      table?:string,as?:string,
  *      select?:string|string[],where?:Wheres,join?:Join[],
@@ -160,6 +160,7 @@ class Query
         return $this;
     }
 
+    /** @param string|string[] $columns */
     public function select($columns)
     {
         $this->select = $columns;
@@ -233,7 +234,7 @@ class Query
     /**
      * @param string                         $table
      * @param string|Wheres|null             $as    可以是别名或`on`条件
-     * @param Wheres|null                    $on
+     * @param string|Wheres|null             $on
      * @param 'INNER'|'LEFT'|'RIGHT'|'CROSS' $type  大写
      */
     public function join($table, $as = null, $on = null, $type = 'INNER')
@@ -276,7 +277,7 @@ class Query
             foreach ($this->join as $join) {
                 $sql .= " {$join['type']} JOIN {$join['table']}".(isset($join['as']) ? ' AS '.$join['as'] : '');
                 if (isset($join['on'])) {
-                    $sql .= ' ON '.$this->buildWhereClause($join['on']);
+                    $sql .= ' ON '.$this->buildWhereClauseIf($join['on']);
                 }
             }
         }
@@ -348,6 +349,11 @@ class Query
         return $this->prepareIf($sql);
     }
 
+    protected function buildWhereClauseIf($query)
+    {
+        return is_string($query) ? $query : $this->buildWhereClause($query);
+    }
+
     protected function buildWhereClause(array $query)
     {
         if (isset($query['$or']) && 1 == count($query)) {
@@ -390,7 +396,7 @@ class Query
                 continue;
             }
             if ('$date' === $key) {
-                if (isset($this->defaultDateColumn)) {
+                if (isset($this->defaultDateColumn) && $value) {
                     $conditions[] = $this->parseCondition($this->defaultDateColumn, ['$date' => $value]);
                 }
                 continue;
@@ -571,10 +577,13 @@ class Query
 
     protected function parseDateQuery($column, $args)
     {
-        add_filter('date_query_valid_columns', $callback = fn ($columns) => [...$columns, $column]);
-        $args['column'] = $column;
-        $condition = (new \WP_Date_Query($args))->get_sql();
+        $hasFormat = false !== strpos($column, '%');
+        $args['column'] = $hasFormat ? 'zmo_date' : $column;
+        $dateQuery = new \WP_Date_Query($args);
+        add_filter('date_query_valid_columns', $callback = fn ($columns) => [...$columns, $args['column']]);
+        $condition = $dateQuery->get_sql();
         remove_filter('date_query_valid_columns', $callback);
+        $condition = $hasFormat ? str_replace('zmo_date', $column, $condition) : $condition;
         $condition = $this->removeLeadingAndOr($condition);
         return $condition;
     }
@@ -611,12 +620,15 @@ class Query
         return $total;
     }
 
-    public function count($column = '*')
+    public function count(string $column = '*')
     {
         $this->select = 'COUNT('.$column.')';
         return (int) $this->db->get_var($this->toSelectSQL());
     }
 
+    /**
+     * @param string|string[] $columns
+     */
     public function get($columns = null)
     {
         isset($columns) && $this->select($columns);
@@ -624,6 +636,9 @@ class Query
     }
 
     /**
+     * 总会返回数组.
+     *
+     * @param  string|string[] $columns
      * @return object[]
      */
     public function findMany($columns = null)
@@ -634,6 +649,7 @@ class Query
     }
 
     /**
+     * @param  string|string[]  $columns
      * @return object|void|null
      */
     public function findFirst($columns = null)
@@ -699,6 +715,11 @@ class Query
         return $this->db->query($this->toDeleteSQL());
     }
 
+    /**
+     * 获取第一行指定列的值
+     *
+     * @param string|null $column
+     */
     public function firstCol($column = null, $x = 0)
     {
         isset($column) && $this->select($column);
@@ -706,13 +727,25 @@ class Query
         return reset($arr);
     }
 
-    public function getCol($x = 0)
+    /**
+     * 获取多行指定列的值数组.
+     *
+     * @param string|null $column
+     */
+    public function getCol($column = null, $x = 0)
     {
+        isset($column) && $this->select($column);
         return $this->db->get_col($this->toSelectSQL(), $x);
     }
 
-    public function getVar($x = 0, $y = 0)
+    /**
+     * 返回第一行指定列的值
+     *
+     * @param string|null $column
+     */
+    public function getVar($column = null, $x = 0, $y = 0)
     {
+        isset($column) && $this->select($column);
         return $this->db->get_var($this->toSelectSQL(), $x, $y);
     }
 
