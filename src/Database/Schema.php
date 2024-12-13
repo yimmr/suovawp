@@ -529,22 +529,6 @@ class Schema
     }
 
     /**
-     * 自定义参数查询，适合匹配前端的查询参数.
-     *
-     * @template P
-     * @param  P|array              $params 查询参数，一般设计和api接口一致
-     *                                      - 不直接使用 QueryOptions
-     *                                      - Schema 默认识别与字段同名的参数，构建相等where条件
-     *                                      - 其他参数需要通过覆盖 `prepareQuery` 方法解析并构建查询
-     * @return queryResult<M,I,Q,P> 返回标准化查询结果对象
-     */
-    final public static function query(array $params)
-    {
-        $result = static::execQuery($params + static::getDefaultQueryParams());
-        return new QueryResult($result, static::class);
-    }
-
-    /**
      * 子类覆盖此方法返回默认查询参数.
      */
     public static function getDefaultQueryParams()
@@ -561,16 +545,43 @@ class Schema
     }
 
     /**
+     * @return queryResult<M,I,Q,P>
+     */
+    public static function wrapQuery($query, $params = [], $args = [])
+    {
+    }
+
+    /**
+     * 自定义参数查询，适合匹配前端的查询参数.
+     *
+     * @template P
+     * @param  P|array              $params 查询参数，一般设计和api接口一致
+     *                                      - 不直接使用 QueryOptions
+     *                                      - Schema 默认识别与字段同名的参数，构建相等where条件
+     *                                      - 其他参数需要通过覆盖 `prepareQuery` 方法解析并构建查询
+     * @return queryResult<M,I,Q,P> 返回标准化查询结果对象
+     */
+    final public static function query(array $params)
+    {
+        $result = static::execQuery($params + static::getDefaultQueryParams());
+        return new QueryResult($result, static::class);
+    }
+
+    /** 支持通过query参数查询总量 */
+    public static function queryTotal(array $params)
+    {
+        $params = static::prepareQueryParams($params + static::getDefaultQueryParams());
+        $query = static::createQuery();
+        static::prepareQuery($query, $params);
+        return $query->total();
+    }
+
+    /**
      * 子类覆盖此方法实现完全自定义的查询，需返回 `QueryResult` 构造函数接收的数组结构.
      */
     protected static function execQuery(array $params)
     {
-        foreach (static::paramMapFilter(['s' => 'search']) as $key => $newKey) {
-            if (isset($params[$key])) {
-                $params[$newKey] = $params[$key];
-                unset($params[$key]);
-            }
-        }
+        $params = static::prepareQueryParams($params);
         $perPage = $params['per_page'];
         $page = $params['page'];
         $query = static::createQuery()->page($page, $perPage);
@@ -584,6 +595,17 @@ class Schema
             'total_callback' => [$query, 'total'],
             'params'         => $params,
         ];
+    }
+
+    protected static function prepareQueryParams(array $params)
+    {
+        foreach (static::paramMapFilter(['s' => 'search']) as $key => $newKey) {
+            if (isset($params[$key])) {
+                $params[$newKey] = $params[$key];
+                unset($params[$key]);
+            }
+        }
+        return $params;
     }
 
     /**
