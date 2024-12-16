@@ -283,6 +283,11 @@ class Assets
         return $this->after(fn () => wp_add_inline_style($this->getHandle(), $data));
     }
 
+    public function localize($varname, $data)
+    {
+        return $this->after(fn () => wp_localize_script($this->getHandle(), $varname, $data));
+    }
+
     /**
      * 本地化已注册的选项.
      */

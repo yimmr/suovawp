@@ -100,7 +100,12 @@ export const formatApiData = (data: any): any => {
         return data.map((item) => formatApiData(item));
     } else if (typeof data === 'object' && data !== null) {
         return Object.fromEntries(
-            Object.entries(data).map(([key, val]) => [convertObjectKey(key), formatApiData(val)])
+            Object.entries(data).map(([key, val]) => {
+                if (['default', 'options', 'value', 'defaultValue'].includes(key)) {
+                    return [convertObjectKey(key), val];
+                }
+                return [convertObjectKey(key), formatApiData(val)];
+            })
         );
     }
     return data;

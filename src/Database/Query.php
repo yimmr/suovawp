@@ -722,8 +722,8 @@ class Query
      */
     public function firstCol($column = null, $x = 0)
     {
-        isset($column) && $this->select($column);
-        $arr = $this->getCol($x);
+        $this->limit = 1;
+        $arr = $this->getCol($column, $x);
         return reset($arr);
     }
 

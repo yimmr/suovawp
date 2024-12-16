@@ -127,7 +127,17 @@ class Migrate
                         $sub .= ' '.$param;
                         break;
                     case 'default':
-                        $override['default'] = 'now()' == $param ? 'CURRENT_TIMESTAMP' : (is_string($param) ? "'{$param}'" : $param);
+                        switch ($param) {
+                            case 'now()':
+                                $override['default'] = 'CURRENT_TIMESTAMP';
+                                break;
+                            case 'now(3)':
+                                $override['default'] = 'CURRENT_TIMESTAMP(3)';
+                                break;
+                            default:
+                                $override['default'] = (is_string($param) ? "'{$param}'" : $param);
+                                break;
+                        }
                         break;
                     default:
                         $override[$method] = $param;

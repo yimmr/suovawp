@@ -197,19 +197,16 @@ class Context implements ContractsContext
     }
 
     /**
-     * @param int|array|mixed $data
-     * @param int|null        $status
+     * @param int|null $status
      */
-    public function apiError(string $code = '', string $message = '', $data = 400, $status = null)
+    public function apiError(string $code = '', string $message = '', $errors = 400, $status = null)
     {
-        if (is_array($data)) {
-            $data['status'] ??= $status ?? 400;
-        } elseif (is_int($data)) {
-            $data = ['status' => $data];
+        if (is_int($errors)) {
+            $errors = ['status' => $errors];
         } else {
-            $data = ['status' => 400, 'errors' => $data];
+            $errors = ['status' => $status ?? 400, 'errors' => $errors];
         }
-        return new \WP_Error($code, $message, $data);
+        return new \WP_Error($code, $message, $errors);
     }
 
     public function apiSuccess($data = null, string $message = 'ok')
@@ -226,12 +223,17 @@ class Context implements ContractsContext
         }
     }
 
+    public function hasLayer()
+    {
+        return isset($this->layerEngine);
+    }
+
     public function nextLayer()
     {
         isset($this->layerEngine) && $this->layerEngine->next();
     }
 
-    public function forwardLayer($path)
+    public function forwardLayer($path, $withwp = false)
     {
         if (isset($this->layerEngine) && $this->layerEngine->isStarted()) {
             wp_die('forwardLayer() can only be called before the first layer is rendered', 500);
@@ -240,7 +242,9 @@ class Context implements ContractsContext
         if (!$this->layerEngine->isEmpty()) {
             $this->loadLayerModelIf($this->layerEngine->getId(), $this->layerEngine->getPage(), false);
         }
-        $this->nextLayer();
+        if (!$withwp) {
+            $this->nextLayer();
+        }
     }
 
     protected function loadLayerModelIf($routeId, $page = 'page.php', $withNode = true)
@@ -262,7 +266,7 @@ class Context implements ContractsContext
                 $keys = $segments;
             }
             if ('page.php' != $page) {
-                $keys[] = pathinfo($page, PATHINFO_FILENAME);
+                $keys[] = str_replace('-', '.', pathinfo($page, PATHINFO_FILENAME));
             }
             $key = strtolower(implode('.', $keys));
         } else {
@@ -346,5 +350,13 @@ class Context implements ContractsContext
     public function performance()
     {
         return $this->container->singleton(Performance::class, $this);
+    }
+
+    public function redirectToLoginIf()
+    {
+        if (!is_user_logged_in()) {
+            wp_safe_redirect(wp_login_url($this->request->url->toString()));
+            exit;
+        }
     }
 }

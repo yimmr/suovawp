@@ -16,13 +16,14 @@ class DB
         'bigint'   => 'BIGINT',
         'float'    => 'DOUBLE',
         'decimal'  => 'DECIMAL(65,30)',
-        'datetime' => 'DATETIME(3)',
+        'datetime' => 'DATETIME',
         'json'     => 'JSON',
         'bytes'    => 'LONGBLOB',
     ];
 
     public const FORMAT_MAP = [
         'string'   => '%s',
+        'boolean'  => '%d',
         'int'      => '%d',
         'bigint'   => '%d',
         'float'    => '%f',

@@ -93,7 +93,7 @@ class FormField
             if (!$type) {
                 continue;
             }
-            $type->label($field['label']);
+            $type->label($field['label'] ?? '');
             $hasDefault = array_key_exists('default', $field);
             if ($current && !array_key_exists($id, $current) && $hasDefault) {
                 $type = $type->default($field['default'])->optional();

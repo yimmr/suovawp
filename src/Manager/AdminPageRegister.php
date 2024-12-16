@@ -219,6 +219,9 @@ class AdminPageRegister
         }
         $model = $page['model'] ?? (isset($page['settings']) ? AdminOptionPage::class : null);
         if (!$model) {
+            if (isset($page['load'])) {
+                ($page['load'])($page);
+            }
             return;
         }
         $model = new $model($ctx, $page);

@@ -74,6 +74,7 @@ class Arr
         return array_filter($array, fn ($v) => !in_array($v, $blacklist));
     }
 
+    /** 数组项为空时使用默认数组的值 */
     public static function fillEmpty(array &$array, $default = [])
     {
         foreach ($default as $key => $value) {
@@ -81,6 +82,11 @@ class Arr
                 $array[$key] = $value;
             }
         }
+    }
+
+    public static function findOrDefault(array $array, $value, $defaultIndex = 0)
+    {
+        return in_array($value, $array) ? $value : ($array[$defaultIndex] ?? null);
     }
 
     public static function has($array, $key)

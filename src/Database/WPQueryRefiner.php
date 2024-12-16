@@ -93,7 +93,7 @@ class WPQueryRefiner
     public function sort($converter, $builder = null, $keys = [])
     {
         if (isset($this->args['orderby'])) {
-            $order = $this->args['order'] ?? 'ASC';
+            $order = $this->args['order'] ?? 'DESC';
             $orderby = $this->args['orderby'];
             if (is_array($orderby)) {
                 $newOrderby = [];
@@ -281,7 +281,7 @@ class WPQueryRefiner
      */
     public static function extendMainQuery($props)
     {
-        add_action('parse_query', function ($query) use ($props) {
+        add_action('pre_get_posts', function ($query) use ($props) {
             if ($query->is_main_query()) {
                 if (is_array($props)) {
                     self::extend($query, $props);
@@ -295,15 +295,21 @@ class WPQueryRefiner
     /**
      * @param array|callable(\WP_Query):void $props
      */
-    public static function extendMainQueryNonAdmin($props)
+    public static function extendMainQueryNonAdmin($props, $isArgs = false)
     {
         if (is_admin()) {
             return;
         }
-        add_action('parse_query', function ($query) use ($props) {
+        add_action('pre_get_posts', function ($query) use ($props, $isArgs) {
             if (!is_admin() && $query->is_main_query()) {
                 if (is_array($props)) {
-                    self::extend($query, $props);
+                    if ($isArgs) {
+                        foreach ($props as $key => $value) {
+                            $query->set($key, $value);
+                        }
+                    } else {
+                        self::extend($query, $props);
+                    }
                 } else {
                     $props($query);
                 }

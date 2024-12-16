@@ -176,7 +176,7 @@ class QueryResult
     public function getPaginateArgs($args = [])
     {
         $args += $this->basePaginateArgs;
-        $args['total'] = $this->pages;
+        $args['total'] = $this->getPages();
         $args['current'] = $this->page;
         return $args;
     }

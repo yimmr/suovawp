@@ -152,7 +152,9 @@ class Schema
         if (static::$container->hasInstance($key)) {
             return static::$container->get($key);
         }
-        return static::$container->instance($key, static::buildSingleton($id, $object));
+        $model = static::buildSingleton($id, $object);
+        $model = $model ?: static::buildModel([], false);
+        return static::$container->instance($key, $model);
     }
 
     /**
@@ -192,10 +194,10 @@ class Schema
      * @param  bool $exists
      * @return M
      */
-    public static function entityProxy($object, $exists = true)
+    public static function entityProxy($object, $exists = null)
     {
         $className = static::getModel($object);
-        $model = new $className([], ['schema' => static::class, 'exists' => $exists]);
+        $model = new $className([], ['schema' => static::class, 'exists' => $exists ?? (bool) $object]);
         $model->setEntity($object);
         return $model;
     }
