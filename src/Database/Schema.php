@@ -281,6 +281,18 @@ class Schema
     }
 
     /**
+     * @param string|string[] $columns
+     */
+    public static function columnExtsts($columns)
+    {
+        global $wpdb;
+        $table = static::fullTableName();
+        $column = is_array($columns) ? 'IN ('.implode("','", $columns).')' : "= '{$columns}'";
+        $sql = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{$table}' AND COLUMN_NAME {$column}";
+        return $wpdb->get_var($sql) > 0;
+    }
+
+    /**
      * 指定条件数组.
      *
      * @see Query::where()

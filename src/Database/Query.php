@@ -330,10 +330,14 @@ class Query
         return $this->prepareIf($sql);
     }
 
-    public function toUpdateSQL($data)
+    public function toUpdateSQL($data, $raw = false)
     {
-        [$formats, $values] = DB::parseDataFormatsValues($this->schema, $data);
-        $this->formatValues = $values;
+        if (!$raw) {
+            [$formats, $values] = DB::parseDataFormatsValues($this->schema, $data, $raw);
+            $this->formatValues = $values;
+        } else {
+            $formats = $data;
+        }
         $fields = [];
         foreach ($formats as $field => $value) {
             $fields[] = "`$field` = ".$value;
@@ -433,7 +437,7 @@ class Query
 
     protected function parseConditionStr($field, $value, $format = true)
     {
-        if (isset($value['$eq'])) {
+        if (array_key_exists('$eq', $value)) {
             $value = $value['$eq'];
             if (is_null($value)) {
                 $operator = 'IS';
@@ -442,7 +446,7 @@ class Query
             } else {
                 $operator = '=';
             }
-        } elseif (isset($value['$ne'])) {
+        } elseif (array_key_exists('$ne', $value)) {
             $value = $value['$ne'];
             if (is_null($value)) {
                 $operator = 'IS NOT';
@@ -613,6 +617,7 @@ class Query
         $offset = $this->offset;
         $select = $this->select;
         $this->limit = $this->offset = null;
+        $this->formatValues = [];
         $total = $this->count();
         $this->limit = $limit;
         $this->offset = $offset;
@@ -688,12 +693,12 @@ class Query
     /**
      * 返回影响的行数，出现错误时返回false.
      */
-    public function update($data)
+    public function update($data, $raw = false)
     {
         if (empty($data)) {
             return false;
         }
-        return $this->db->query($this->toUpdateSQL($data));
+        return $this->db->query($this->toUpdateSQL($data, $raw));
     }
 
     /** 通过主键判断是否存在这行数据 */

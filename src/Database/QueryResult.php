@@ -125,6 +125,11 @@ class QueryResult
         return $this->items;
     }
 
+    public function isEmpty()
+    {
+        return empty($this->items);
+    }
+
     public function total()
     {
         return $this->total ??= (int) call_user_func($this->totalCallback);
