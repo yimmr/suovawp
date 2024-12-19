@@ -65,4 +65,14 @@ trait DataFormatTrait
         }
         return is_numeric($value) ? (float) $value : $default;
     }
+
+    public function increase(string $key, $step = 1, $max = INF)
+    {
+        return $this->update($key, min($max, $this->get($key, 0) + $step));
+    }
+
+    public function decrease(string $key, $step = 1, $min = 0)
+    {
+        return $this->update($key, max($min, $this->get($key, 0) - $step));
+    }
 }

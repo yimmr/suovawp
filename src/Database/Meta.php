@@ -2,6 +2,7 @@
 
 namespace Suovawp\Database;
 
+use Suovawp\Utils\Arr;
 use Suovawp\Utils\DataFormatTrait;
 
 /**
@@ -17,43 +18,89 @@ abstract class Meta
     /** @var int */
     protected $id;
 
-    /** @var string 类型，如post、user、comment等 */
-    protected $type;
-
     /** @var string 无前缀表名，如postmeta */
     protected $table;
 
-    protected $cache = [];
+    /** @var string|'post'|'user'|'term'|'comment' 类型 */
+    protected $type;
+
+    /** @var string 若有则是对象的子类型 */
+    protected $subType;
+
+    /** @var array{string,mixed} 以原始meta键做缓存键 */
+    protected $data = [];
 
     protected $setedKeys = [];
 
-    protected $alias = [];
-
-    /** 子类若需要继承父类的所有meta，可用此属性定义别名 */
-    protected $extendAlias = [];
-
     protected static $instances = [];
 
-    /** 预定义强制转换的元数据类型，仅支持原始键 */
-    protected $schema = [];
+    /**
+     * 实例属性和meta结构映射，选项与WP注册meta相似，额外支持一些参数：
+     * - key 如果属性名与元数据键不同，则指定原始键
+     * - cast 读写时强制转换的回调，以@开头的字符使用类内置转换器.
+     * - type 未指定时默认是字符串.
+     *
+     * @var array<string,array{
+     *  key:string,
+     *  cast:string|callable,
+     *  object_subtype:string,
+     *  type: 'string'|'boolean'|'integer'|'number'|'array'|'object',
+     *  label:string,
+     *  description:string,
+     *  single:boolean,
+     *  default:mixed,
+     *  sanitize_callback:callable,
+     *  auth_callback:callable,
+     *  show_in_rest:boolean|array,
+     *  revisions_enabled:boolean,
+     * }>
+     **/
+    protected static $fields = [];
+
+    private static $classSetupMap = [];
+
+    protected static function setupFields()
+    {
+        if (isset(self::$classSetupMap[static::class])) {
+            return;
+        }
+        static::compose();
+        self::$classSetupMap[static::class] = true;
+    }
+
+    /** 注册元数据 */
+    protected static function compose()
+    {
+    }
+
+    /**
+     * 从其他类提取字段.
+     *
+     * @param class-string<Meta> $meta
+     */
+    protected static function extend($meta, $pick = null, $omit = null)
+    {
+        $meta::setupFields();
+        $fields = $meta::$fields;
+        if ($pick) {
+            $fields = Arr::pick($fields, $pick);
+        }
+        if ($omit) {
+            $fields = Arr::omit($fields, $omit);
+        }
+        static::$fields = static::$fields + $fields;
+    }
+
+    protected function objectIdField()
+    {
+        return $this->type.'_id';
+    }
 
     public function __construct($id)
     {
         $this->id = (int) $id;
-        $this->alias = $this->extendAlias + $this->alias;
-        $this->handleCreated();
-    }
-
-    /** 初始化完成后执行自定义代码 */
-    protected function handleCreated()
-    {
-    }
-
-    /** 仅获取真实key的临时解决方案 */
-    public static function k($key)
-    {
-        $instance = static::$instances[static::class] ??= new static(0);
-        return $instance->key($key);
+        add_filter('default_'.$this->type.'_metadata', MetaCaster::class.'::defaultValue', 10, 4);
+        static::setupFields();
     }
 
     public function __get($name)
@@ -66,43 +113,20 @@ abstract class Meta
         $this->set($name, $value);
     }
 
-    /** 获取实际的metaKey */
-    public function key($key)
-    {
-        return $this->alias[$key] ?? $key;
-    }
-
     /** @uses self::getMeta()  */
-    public function get(string $key, $default = null)
+    public function get(string $key, $default = null, $single = true)
     {
-        $key = $this->key($key);
-        if (isset($this->cache[$key])) {
-            return $this->cache[$key];
+        $metaKey = $this->metaKey($key);
+        if (isset($this->data[$metaKey])) {
+            return $this->data[$metaKey];
         }
-        $value = $this->getMeta($key, true);
-        $value = '' !== $value ? $value : $default;
-        $this->cache[$key] = $value;
+        $value = $this->getMeta($metaKey, $single) ?? $default;
+        if (!$single) {
+            $value = is_array($value) && $value ? $value : $default;
+        }
+        $value = $this->castToSchema($value, $key);
+        $this->data[$metaKey] = $value;
         return $value;
-    }
-
-    /** @uses self::addMeta()  */
-    public function add(string $key, $value, $unique = false)
-    {
-        return $this->addMeta($this->key($key), $value, $unique);
-    }
-
-    /** @uses self::updateMeta()  */
-    public function update(string $key, $value, $prevValue = '')
-    {
-        return $this->updateMeta($this->key($key), $value, $prevValue);
-    }
-
-    /** @uses self::deleteMeta()  */
-    public function delete(string $key, $value = '')
-    {
-        $key = $this->key($key);
-        unset($this->cache[$key]);
-        return $this->deleteMeta($key, $value);
     }
 
     /**
@@ -112,21 +136,27 @@ abstract class Meta
      */
     public function getMany(string $key, array $default = []): array
     {
-        $key = $this->key($key);
-        if (isset($this->cache[$key])) {
-            return $this->cache[$key];
-        }
-        $value = $this->getMeta($key, false);
-        $value = is_array($value) && $value ? $value : $default;
-        $this->cache[$key] = $value;
-        return $value;
+        return $this->get($key, $default, false);
+    }
+
+    /** @uses self::addMeta()  */
+    public function add(string $key, $value, $unique = false)
+    {
+        $value = $this->prepareSave($key, $value);
+        return $this->addMeta($this->metaKey($key), $value, $unique);
+    }
+
+    /** @uses self::updateMeta()  */
+    public function update(string $key, $value, $prevValue = '')
+    {
+        $value = $this->prepareSave($key, $value);
+        $metaKey = $this->metaKey($key);
+        unset($this->data[$metaKey]);
+        return $this->updateMeta($metaKey, $value, $prevValue);
     }
 
     /**
      * 更新拥有多行记录的meta，先删除所有记录，再添加新记录.
-     *
-     * @uses self::deleteMany()
-     * @uses self::add()
      */
     public function updateMany($key, $values)
     {
@@ -138,6 +168,14 @@ abstract class Meta
         return $result;
     }
 
+    /** @uses self::deleteMeta()  */
+    public function delete(string $key, $value = '')
+    {
+        $metaKey = $this->metaKey($key);
+        unset($this->data[$metaKey]);
+        return $this->deleteMeta($metaKey, $value);
+    }
+
     /**
      * 删除拥有多行记录的meta.
      *
@@ -145,42 +183,72 @@ abstract class Meta
      */
     public function deleteMany(string $key, $value = '')
     {
-        $key = $this->key($key);
-        unset($this->cache[$key]);
-        return delete_metadata($this->type, $this->id, $key, $value, true);
+        $metaKey = $this->metaKey($key);
+        unset($this->data[$metaKey]);
+        return delete_metadata($this->type, $this->id, $metaKey, $value, true);
     }
 
     /** 删除数据库中对象id的所有元数据 */
     public function deleteAll()
     {
         global $wpdb;
-        return $wpdb->delete($wpdb->prefix.$this->table, [$this->getTypeColumn() => $this->id]);
+        $this->data = [];
+        return $wpdb->delete($wpdb->prefix.$this->table, [$this->objectIdField() => $this->id]);
     }
 
-    protected function getTypeColumn()
+    /** 更新已注册的所有元数据（$data数组可混合使用原始键和别名键） */
+    public function updateAll(array $data)
     {
-        return $this->type.'_id';
+        $value = [];
+        foreach ($this->keys() as $key) {
+            $dataKey = $key;
+            if (isset($data[$dataKey]) || isset($data[$dataKey = $this->metaKey($key)])) {
+                $value[$key] = $this->isSingle($key)
+                    ? $this->update($key, $data[$dataKey])
+                    : $this->updateMany($key, $data[$dataKey]);
+            }
+        }
+        return $value;
+    }
+
+    /** 获取已注册的所有元数据，有缓存则不会重新读取 */
+    public function all()
+    {
+        $value = [];
+        foreach ($this->keys() as $key) {
+            $value[$key] = $this->isSingle($key) ? $this->get($key) : $this->getMany($key);
+        }
+        return $value;
     }
 
     /**
-     * 先暂存对象中，并为实际储存，取值时取设置的值，需要手动调用save保存.
+     * @param string $key 属性名非元数据键
      */
-    public function set(string $key, $value)
+    protected function prepareSave(string $key, $value)
     {
-        $key = $this->key($key);
-        $this->cache[$key] = $value;
-        $this->setedKeys[] = $key;
-        return $this;
+        $value = $this->castToSchema($value, $key);
+        return $value;
     }
 
-    public function save()
+    protected function castToSchema($value, string $key)
     {
-        foreach ($this->setedKeys as $key) {
-            $this->updateMeta($key, $this->cache[$key]);
+        if (!isset(static::$fields[$key])) {
+            return $value;
         }
-        $this->setedKeys = [];
+        $value = MetaCaster::coerce($value, static::$fields[$key]['type'] ?? 'string');
+        if (isset(static::$fields[$key]['cast'])) {
+            $cast = static::$fields[$key]['cast'];
+            if (is_string($cast) && '@' === $cast[0]) {
+                $cast = substr($cast, 1);
+                $value = MetaCaster::$cast($value);
+            } else {
+                $value = $cast($value);
+            }
+        }
+        return $value;
     }
 
+    /** 仅更新设置对象中的值，需要手动调用save保存. */
     public function fill(array $data)
     {
         foreach ($data as $key => $value) {
@@ -189,26 +257,88 @@ abstract class Meta
         return $this;
     }
 
-    public function getCast($key, $default = null)
+    /** 仅更新设置对象中的值，需要手动调用save保存. */
+    public function set(string $key, $value)
     {
-        $key = $this->key($key);
-        if (!isset($this->schema[$key])) {
-            return $this->get($key, $default);
+        $this->data[$this->metaKey($key)] = $value;
+        $this->setedKeys[] = $key;
+        return $this;
+    }
+
+    /** 保存已变更的值到数据库 */
+    public function save()
+    {
+        foreach ($this->setedKeys as $key) {
+            $this->update($key, $this->data[$this->metaKey($key)]);
         }
-        $keySchema = $this->schema[$key];
-        $type = $keySchema['type'] ?? 'string';
-        switch ($type) {
-            case 'array':
-                return $this->array($key, $default ?? ($keySchema['default'] ?? []));
-            case 'boolean':
-                return $this->boolean($key, $default ?? ($keySchema['default'] ?? false));
-            case 'integer':
-                return $this->integer($key, $default ?? ($keySchema['default'] ?? 0));
-            case 'numeric':
-                return $this->numeric($key, $default ?? ($keySchema['default'] ?? 0));
-            default:
-                return $this->string($key, $default ?? ($keySchema['default'] ?? ''));
+        $this->setedKeys = [];
+    }
+
+    public function isSingle(string $key)
+    {
+        return static::$fields[$key]['single'] ?? true;
+    }
+
+    /** 返回实例已注册的属性名数组. */
+    public function keys()
+    {
+        return array_keys(static::$fields);
+    }
+
+    /** 从属性名获取真实元数据键，确保一致性 */
+    public static function k($key)
+    {
+        static::setupFields();
+        return static::$fields[$key]['key'] ?? $key;
+    }
+
+    /** 获取metaKey，未注册或与属性相同时返回原值 */
+    public function metaKey(string $key): string
+    {
+        return static::$fields[$key]['key'] ?? $key;
+    }
+
+    /** 返回实例已注册的`meta_key`数组. */
+    public function metaKeys()
+    {
+        $metaKeys = [];
+        foreach (static::$fields as $key => $options) {
+            $metaKeys[] = $options['key'] ?? $key;
         }
+        return $metaKeys;
+    }
+
+    /**
+     * 获取对象在数据表中所有的`meta_key`数组.
+     *
+     * @param  bool     $resetCache 本次查询是否重置缓存
+     * @return string[] 返回元数据键数组，未设置表名时返回空数组
+     */
+    public function allMetaKeys($resetCache = false)
+    {
+        global $wpdb;
+        if (!$this->table) {
+            return [];
+        }
+        $group = $this->table.'_all_meta_keys';
+        if (!$resetCache) {
+            $keys = wp_cache_get($this->id, $group, false, $found);
+            if ($found && is_array($keys)) {
+                return $keys;
+            }
+        }
+        $table = $wpdb->prefix.$this->table;
+        $column = $this->objectIdField();
+        $keys = $wpdb->get_col("SELECT meta_key FROM {$table} WHERE {$column} = {$this->id} GROUP BY meta_key");
+        $keys = is_array($keys) ? $keys : [];
+        wp_cache_set($this->id, $keys, $group);
+        return $keys;
+    }
+
+    /** 获取对象在数据表中所有的元数据  */
+    public function allMeta()
+    {
+        return (array) $this->getMeta('');
     }
 
     /**
@@ -216,94 +346,22 @@ abstract class Meta
      */
     public function transform(array $metadata)
     {
-        $alias = array_flip($this->alias);
         $value = [];
         foreach ($metadata as $key => $value) {
-            $value[$alias[$key] ?? $key] = $value;
+            $value[$this->metaKey($key)] = $value;
         }
         return $value;
-    }
-
-    /** 返回别名和没有别名的原始键，仅类本身定义的键，可覆盖此方法添加其他值. */
-    public function keys()
-    {
-        return array_keys($this->alias);
-    }
-
-    /** 返回实际存储的键，仅类本身定义的键，可覆盖此方法添加其他值. */
-    public function metaKeys()
-    {
-        return array_values($this->alias);
-    }
-
-    /** 未实现！返回别名和没有别名的原始键，类和父类定义的键. */
-    public function allKeys()
-    {
-        return $this->getKeys();
-    }
-
-    /** 未实现！ 返回实际存储的键，类和父类定义的键. */
-    public function allMetaKeys()
-    {
-        return $this->metaKeys();
-    }
-
-    /** 仅反回特定类型需要的meta键，用于批量获取，默认是从别名列表中的值，可覆盖此方法添加其他值 */
-    public function getKeys()
-    {
-        return array_values($this->alias);
-    }
-
-    /** 等同于 `all()`，但转换键为别名键 */
-    public function allAndTransform()
-    {
-        $alias = array_flip($this->alias);
-        $value = [];
-        foreach ($this->getKeys() as $key) {
-            $value[$alias[$key] ?? $key] = $this->getCast($key);
-        }
-        return $value;
-    }
-
-    /** 返回 `getKeys()` 的所有meta，有缓存则不会重新读取 */
-    public function all()
-    {
-        $value = [];
-        foreach ($this->getKeys() as $key) {
-            $value[$key] = $this->getCast($key);
-        }
-        return $value;
-    }
-
-    /** 仅更新 `getKeys()` 列出的所有meta，自动识别别名键（原始键和别名键可混合使用） */
-    public function updateAll(array $data)
-    {
-        $value = [];
-        $aliasFlip = array_flip($this->alias);
-        foreach ($this->getKeys() as $key) {
-            // 提供的数据可能是别名key，需要转换为原始key
-            if (isset($data[$key]) || (($key = $aliasFlip[$key] ?? '') && isset($data[$key]))) {
-                $value[$key] = $this->update($key, $data[$key]);
-            }
-        }
-        return $value;
-    }
-
-    /** 返回数据库中所有meta，未转换别名key  */
-    public function allMeta()
-    {
-        return (array) $this->getMeta('');
     }
 
     /** 返回已加载的meta数组，未转换别名key */
     public function toArray()
     {
-        return $this->cache;
+        return $this->all();
     }
 
     public function clean()
     {
-        $this->cache = [];
+        $this->data = [];
         $this->setedKeys = [];
     }
 
@@ -334,5 +392,19 @@ abstract class Meta
     protected function deleteMeta(string $key, $value = '')
     {
         return delete_metadata($this->type, $this->id, $key, $value, false);
+    }
+
+    /**
+     * @param array $args 元数据参数，留空则从$fields中获取
+     *                    - revisions_enabled 仅支持'post'对象类型
+     *                    - auth_callback 回调在增删改元数据时调用
+     */
+    protected function registerMeta(string $key, array $args = [])
+    {
+        $args += static::$fields[$key] ?? [];
+        if ($this->subType && !isset($args['object_subtype'])) {
+            $args['object_subtype'] = $this->subType;
+        }
+        return register_meta($this->type, $this->metaKey($key), $args);
     }
 }
