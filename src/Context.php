@@ -233,9 +233,9 @@ class Context implements ContractsContext
         isset($this->layerEngine) && $this->layerEngine->next();
     }
 
-    public function forwardLayer($path, $withwp = false)
+    public function forwardLayer($path, $withwp = false, $force = false)
     {
-        if (isset($this->layerEngine) && $this->layerEngine->isStarted()) {
+        if (!$force && isset($this->layerEngine) && $this->layerEngine->isStarted()) {
             wp_die('forwardLayer() can only be called before the first layer is rendered', 500);
         }
         $this->layerEngine = LayerEngine::forward($this->router->rootDir, $path);

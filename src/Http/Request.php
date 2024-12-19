@@ -77,6 +77,12 @@ class Request
         return $this->$name;
     }
 
+    public function input(?string $key = null, $default = '')
+    {
+        $this->allParams ??= $this->bodyParams + $this->query + $this->params;
+        return isset($key) ? ($this->allParams[$key] ?? $default) : $this->allParams;
+    }
+
     public function all(?string $key = null, $default = '')
     {
         $this->allParams ??= $this->bodyParams + $this->query + $this->params;

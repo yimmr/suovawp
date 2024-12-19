@@ -83,6 +83,11 @@ abstract class Model
         return $this->id ??= (int) $this->get($this->idKey, 0);
     }
 
+    public function getReportProps()
+    {
+        return ['object_id' => $this->getId(), 'object_type' => $this->get('post_type', 'post')];
+    }
+
     public function delete()
     {
         return !empty($this->schema) && $this->schema::delete($this->getId());
