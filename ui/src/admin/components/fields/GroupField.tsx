@@ -118,9 +118,11 @@ export default ({
         <BaseField errors={errors?._errors} id={name} label={label}>
             <div
                 ref={fieldRef}
-                className={`tw-border tw-border-solid tw-px-4 tw-py-5 tw-rounded tw-shadow-sm ${
-                    className ? ' ' + className : ''
-                }`}
+                className={`${
+                    parentName
+                        ? ''
+                        : 'tw-border tw-border-solid tw-px-4 tw-py-5 tw-rounded tw-shadow-sm'
+                } ${className}`.trim()}
             >
                 {help && <HelpText className="tw-mb-6" help={help} />}
                 <DndContext
