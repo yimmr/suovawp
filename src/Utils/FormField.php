@@ -140,7 +140,8 @@ class FormField
             case 'number':
                 return v::number()->coerce();
             case 'checkbox':
-                return self::isSingleCheck($field) ? v::string() : v::array();
+                $type = v::string()->coerce();
+                return self::isSingleCheck($field) ? $type : v::array($type);
             case 'radio':
                 return v::string();
             case 'toggle':
@@ -209,6 +210,9 @@ class FormField
     {
         $omitKeys = ['sanitize', 'rule', 'refine', 'transform', 'optional', 'default'];
         $newFields = [];
+        if ($parentName) {
+            // dump($parentName, $data);
+        }
         foreach ($fields as $field) {
             $newField = [];
             $initValue = null;
