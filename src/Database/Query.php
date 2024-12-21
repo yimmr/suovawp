@@ -603,9 +603,9 @@ class Query
         return $str;
     }
 
-    public function prepareIf($sql)
+    public function prepareIf(string $sql)
     {
-        return $this->formatValues ? $this->db->prepare($sql, ...$this->formatValues) : $sql;
+        return $this->formatValues ? (string) $this->db->prepare($sql, ...$this->formatValues) : $sql;
     }
 
     /**
