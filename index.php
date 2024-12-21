@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Suovawp
  * Description: 一个用于快速开发WordPress主题插件的轻量级库
- * Version: 0.1.0
+ * Version: 0.1.1
  * Requires at least: 6.1
  * Requires PHP: 7.4
  * Author: imoncn
