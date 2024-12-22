@@ -115,6 +115,7 @@ class LayerEngine
         if (!empty($this->layers)) {
             return;
         }
+
         if ($this->checkPage && !file_exists($this->root.$this->subdir.DIRECTORY_SEPARATOR.$this->page)) {
             return;
         }
