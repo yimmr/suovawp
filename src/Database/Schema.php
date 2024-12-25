@@ -656,6 +656,9 @@ class Schema
     protected static function paramsToBaseQueryOptions(array $params, $pre = '', $options = [], $searchFields = [])
     {
         $select = ['*'];
+        if (isset($params['date'])) {
+            $params[static::CREATED_AT] ??= $params['date'];
+        }
         foreach (static::FIELDS as $key => $value) {
             if (isset($params[$key])) {
                 $whereValue = $params[$key];

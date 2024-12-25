@@ -261,24 +261,22 @@ class Date
 
     /**
      * 生成时间数组.
-     *
-     * @param string     $start
-     * @param string     $end
-     * @param string|int $interval
-     * @param string     $format
      */
-    public static function generateDateTimeArray($start, $end, $interval, $format = 'Y-m-d H:i:s')
+    public static function generateDateTimeArray(string $start, string $end, string $intervalTime, string $format = 'Y-m-d H:i:s', $withEnd = true)
     {
         if (!$start && !$end) {
             return [];
         }
         $start = new \DateTime($start, $timezone = wp_timezone());
         $end = new \DateTime($end, $timezone);
-        $interval = \DateInterval::createFromDateString($interval);
+        $interval = \DateInterval::createFromDateString($intervalTime);
         $period = new \DatePeriod($start, $interval, $end);
         $result = [];
         foreach ($period as $date) {
             $result[] = $date->format($format);
+        }
+        if ($withEnd && (false === array_search($lastTime = $end->format($format), $result))) {
+            $result[] = $lastTime;
         }
         return $result;
     }
