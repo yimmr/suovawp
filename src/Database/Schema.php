@@ -699,7 +699,9 @@ class Schema
                     $sort = 'asc' == $sort ? 'desc' : 'asc';
                 }
                 $by = 'date' == $by ? static::CREATED_AT : $by;
-                $options['orderby'][$pre.$by] = $sort;
+                if (isset(static::FIELDS[$by])) {
+                    $options['orderby'][$pre.$by] = $sort;
+                }
             }
         } elseif (static::CREATED_AT) {
             $options['orderby'] = [$pre.static::CREATED_AT => 'desc'];
