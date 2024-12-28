@@ -114,16 +114,18 @@ export default ({
         setIds((ids) => ids.filter((id) => id !== idx));
     }, []);
 
+    const isWrapBorder = !errorId?.includes('.');
+
     return (
-        <BaseField errors={errors?._errors} id={name} label={label}>
-            <div
-                ref={fieldRef}
-                className={`${
-                    parentName
-                        ? ''
-                        : 'tw-border tw-border-solid tw-px-4 tw-py-5 tw-rounded tw-shadow-sm'
-                } ${className}`.trim()}
-            >
+        <BaseField
+            errors={errors?._errors}
+            id={name}
+            label={label}
+            className={`${
+                isWrapBorder ? 'tw-border tw-border-solid tw-p-3 tw-rounded tw-shadow-sm' : ''
+            } ${className}`.trim()}
+        >
+            <div ref={fieldRef} className={`${isWrapBorder ? 'tw-pt-2' : ''}`}>
                 {help && <HelpText className="tw-mb-6" help={help} />}
                 <DndContext
                     sensors={sensors}

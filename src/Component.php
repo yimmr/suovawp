@@ -33,10 +33,28 @@ class Component
                 'default' => $args['enabled'] ?? true,
             ],
         ];
-        foreach ($options['attributes'] as $key => $info) {
-            $fields[] = self::createAttributeField($key, $info);
+        if ($options['responsive_top'] ?? false) {
+            $fields[] = self::createSupportsField('responsive', []);
+            $options['supports']['responsive'] = false;
         }
-        $supports = $options['supports'] ?? [];
+        $supportsTop = $options['supports_top'] ?? false;
+        if ($supportsTop) {
+            self::appendSupportsFields($fields, $options['supports'] ?? []);
+            foreach ($options['attributes'] as $key => $info) {
+                $fields[] = self::createAttributeField($key, $info);
+            }
+        } else {
+            foreach ($options['attributes'] as $key => $info) {
+                $fields[] = self::createAttributeField($key, $info);
+            }
+            self::appendSupportsFields($fields, $options['supports'] ?? []);
+        }
+        $field['fields'] = $fields;
+        return $field;
+    }
+
+    public static function appendSupportsFields(&$fields, array $supports)
+    {
         $supports['responsive'] ??= true;
         foreach ($supports as $type => $info) {
             if (false === $info) {
@@ -50,14 +68,13 @@ class Component
             }
             $fields[] = self::createSupportsField($type, $info);
         }
-        $field['fields'] = $fields;
-        return $field;
     }
 
     public static function createAttributeField(string $id, $args = [])
     {
         $field = $args;
         $field['id'] = $id;
+        unset($field['properties']);
         switch ($args['type'] ?? 'string') {
             case 'string':
                 $field['type'] = 'text';

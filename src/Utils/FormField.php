@@ -158,7 +158,7 @@ class FormField
             case 'color-palette':
                 return v::string();
             case 'media':
-                $type = v::number()->id()->coerce();
+                $type = v::integer()->coerce();
                 return self::isMultiple($field) ? v::array($type) : $type;
             case 'upload':
                 return v::string();
@@ -188,10 +188,15 @@ class FormField
             }
             if (isset($field['fields'])) {
                 if ('group' === $field['type']) {
+                    $item = self::extractDefaultValue($field['fields']);
                     if (isset($field['default'])) {
-                        $data[$field['id']] = $field['default'];
+                        $value = [];
+                        foreach ($field['default'] as $_item) {
+                            $value[] = Arr::mergeRecursive($item, $_item);
+                        }
+                        $data[$field['id']] = $value;
                     } else {
-                        $data[$field['id']] = [self::extractDefaultValue($field['fields'])];
+                        $data[$field['id']] = [$item];
                     }
                 } else {
                     $data[$field['id']] = self::extractDefaultValue($field['fields']);
@@ -213,6 +218,7 @@ class FormField
         if ($parentName) {
             // dump($parentName, $data);
         }
+
         foreach ($fields as $field) {
             $newField = [];
             $initValue = null;
@@ -253,6 +259,7 @@ class FormField
             if (!empty($field['fields'])) {
                 $newField['fields'] = self::toClientFields(
                     $field['fields'],
+                    // 组由前端解析，因此不需再传入
                     'group' != $type ? (array) ($newField['value'] ?? []) : [],
                     $newField['name'] ?? $parentName
                 );

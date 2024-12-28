@@ -38,10 +38,13 @@ class AdminOptionPage extends AdminPageModel
     protected function handleFormAction()
     {
         if (empty($_POST['submit_type']) || empty($_POST[$this->topName])) {
+            if (!empty($_POST['submit_type'])) {
+                wp_die('Unauthorized', 400);
+            }
             return;
         }
         if (empty($_POST['_wpnonce']) || !$this->checkToken($_POST['_wpnonce'])) {
-            wp_die('Unauthorized', 403);
+            wp_die('Unauthorized', 400);
         }
 
         $submitType = $_POST['submit_type'];

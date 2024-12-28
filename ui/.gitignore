@@ -25,3 +25,4 @@ dist-ssr
 
 index.html
 src/main.tsx
+test.json

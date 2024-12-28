@@ -131,9 +131,17 @@ export default function ({
 
     const newFields = fields.map((field) => {
         if (field?.id && field.id in value) {
+            const fieldVal = value[field.id];
+            if (field?.type === 'fieldset' && typeof fieldVal === 'object') {
+                for (const subfield of field.fields) {
+                    if (subfield?.id && subfield.id in fieldVal) {
+                        subfield.value = fieldVal[subfield.id];
+                    }
+                }
+            }
             return {
                 ...field,
-                value: value[field.id],
+                value: fieldVal,
             };
         }
         return field;
