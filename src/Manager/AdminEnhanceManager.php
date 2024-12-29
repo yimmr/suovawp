@@ -94,21 +94,22 @@ class AdminEnhanceManager
     }
 
     /**
+     * @param  string|array<string,mixed> $config
      * @return AdminEnhance
      */
-    public static function getEnhance(string $id, $configKey)
+    public static function getEnhance(string $id, $config)
     {
         $instanceId = 'admin_enhance_'.$id;
         $container = self::$ctx->getContainer();
         if ($container->hasInstance($instanceId)) {
             return $container->get($instanceId);
         }
-        $instance = new AdminEnhance(self::$ctx, self::parseConfig($configKey));
+        $instance = new AdminEnhance(self::$ctx, is_string($config) ? self::parseConfig($config) : $config);
         $container->instance($instanceId, $instance);
         return $instance;
     }
 
-    protected static function parseConfig($configKey)
+    protected static function parseConfig(string $configKey)
     {
         $props = self::$ctx->config->array($configKey);
         if (self::$defaultFormEntry && isset($props['assets'])) {

@@ -35,8 +35,9 @@ abstract class Enhance
         $initValue = $id ? $this->getData($id) : [];
         $errors = $this->getFormErrors();
         return [
-            'fields' => FormField::toClientFields($this->getFields(), $initValue, $this->vendor),
-            'errors' => $errors,
+            'fields'     => FormField::toClientFields($this->getFields(), $initValue, $this->vendor),
+            'errors'     => $errors,
+            'root_class' => $this->options['root_class'] ?? '',
         ];
     }
 
@@ -149,6 +150,7 @@ abstract class Enhance
     public static function enhanceRoot($data)
     {
         settings_errors('enhance-settings');
-        return '<div id="enhance-root"><script type="application/json">'.json_encode($data).'</script></div>';
+        $attr = isset($data['root_class']) ? ' class="'.$data['root_class'].'"' : '';
+        return '<div id="enhance-root"'.$attr.'><script type="application/json">'.json_encode($data).'</script></div>';
     }
 }
