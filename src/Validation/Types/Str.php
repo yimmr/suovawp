@@ -80,6 +80,8 @@ class Str extends Any
                 return UtilsStr::isJson($value, $params);
             case 'regex':
                 return 1 === preg_match($params, $value);
+            case 'decimal':
+                return (new Num())->isDecimal($value, $params[0], $params[1]);
             default:
                 return parent::check($value, $method, $params);
         }
@@ -259,5 +261,15 @@ class Str extends Any
     public function json($depth = 10, $message = '%1$s不是有效的JSON格式')
     {
         return $this->addRule('json', $message, $depth);
+    }
+
+    public function decimal($precision, $scale = 0, $message = '%1$s仅支持%2$s位数且最多%3$s位小数')
+    {
+        return $this->addRule('decimal', $message, [$precision, $scale]);
+    }
+
+    public function amount($precision = 20, $scale = 2, $message = '%1$s不是有效金额，仅支持%2$s位数且最多%3$s位小数')
+    {
+        return $this->addRule('decimal', $message, [$precision, $scale]);
     }
 }

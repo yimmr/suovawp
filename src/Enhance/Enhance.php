@@ -2,6 +2,7 @@
 
 namespace Suovawp\Enhance;
 
+use Suovawp\Utils\Arr;
 use Suovawp\Utils\FormField;
 
 abstract class Enhance
@@ -51,6 +52,8 @@ abstract class Enhance
             $this->addFormErrors($result['error']->format());
             $partialData = $validator->getValidated();
             if ($partialData) {
+                $oldData = $this->getData($id);
+                $partialData = Arr::mergeRecursive($oldData, $partialData);
                 $this->saveData($id, $partialData);
             }
             return;
@@ -60,6 +63,11 @@ abstract class Enhance
 
     public function saveData($id, array $data)
     {
+        $filter = $this->options['save_filter'] ?? null;
+        if (!empty($filter)) {
+            $data = $filter($data, $id);
+        }
+        $data = apply_filters('suovawp_enhance_save_data', $data, $id);
         if ($this->shouldbeCompact()) {
             $result = $this->updateMeta($id, $this->getCompactMetaKey(), $data);
             return $result;
@@ -87,6 +95,11 @@ abstract class Enhance
         foreach ($keys as $key) {
             $data[$key] = $this->getMeta($id, $key, true);
         }
+        $filter = $this->options['get_filter'] ?? null;
+        if (!empty($filter)) {
+            $data = $filter($data, $id);
+        }
+        $data = apply_filters('suovawp_enhance_get_data', $data, $id);
         return $data;
     }
 
@@ -104,6 +117,9 @@ abstract class Enhance
     {
         $errors = get_transient($this->transientKey);
         delete_transient($this->transientKey);
+        if ($errors) {
+            $this->addSettingsError('partial_error', __('部分选项因校验失败未更新，请找到对应字段查看原因。', 'suovawp'));
+        }
         return $errors ?: null;
     }
 
@@ -125,8 +141,14 @@ abstract class Enhance
         return [];
     }
 
+    public function addSettingsError($code, $message, $type = 'error')
+    {
+        add_settings_error('enhance-settings', $code, $message, 'error');
+    }
+
     public static function enhanceRoot($data)
     {
+        settings_errors('enhance-settings');
         return '<div id="enhance-root"><script type="application/json">'.json_encode($data).'</script></div>';
     }
 }

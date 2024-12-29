@@ -2,7 +2,7 @@
     @apply tw-flex tw-flex-wrap tw-justify-start tw-flex-row tw-gap-8;
 }
 
-.suovawp-checkbox-inline tw- {
+.suovawp-checkbox-inline {
     @apply tw-flex tw-flex-wrap tw-gap-8;
 }
 

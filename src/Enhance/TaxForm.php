@@ -2,8 +2,6 @@
 
 namespace Suovawp\Enhance;
 
-use Suovawp\Utils\FormField;
-
 /**
  * @phpstan-import-type Field from FormField
  */

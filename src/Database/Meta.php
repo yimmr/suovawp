@@ -235,7 +235,6 @@ abstract class Meta
         if (!isset(static::$fields[$key])) {
             return $value;
         }
-        $value = MetaCaster::coerce($value, static::$fields[$key]['type'] ?? 'string');
         if (isset(static::$fields[$key]['cast'])) {
             $cast = static::$fields[$key]['cast'];
             if (is_string($cast) && '@' === $cast[0]) {
@@ -245,6 +244,7 @@ abstract class Meta
                 $value = $cast($value);
             }
         }
+        $value = MetaCaster::coerce($value, static::$fields[$key]['type'] ?? 'string');
         return $value;
     }
 

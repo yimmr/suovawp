@@ -50,6 +50,7 @@ class MetaCaster
     public static function ids($value)
     {
         if (is_string($value)) {
+            $value = str_replace(['，', '、'], ',', $value);
             $value = explode(',', $value);
         }
         if (is_array($value)) {

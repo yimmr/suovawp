@@ -21,6 +21,8 @@ class PostRegister
         $linkFilters = [];
 
         foreach ($posttypes as $posttype => $params) {
+            $params = apply_filters('suovawp_post_type_params', $params, $posttype);
+
             if (isset($params['admin_enhance'])) {
                 AdminEnhanceManager::postPage($posttype, $params['admin_enhance']);
                 unset($params['admin_enhance']);
@@ -80,7 +82,9 @@ class PostRegister
         $linkFilters = [];
 
         foreach ($taxonomies as $taxonomy => $params) {
-            $posttype = $params['object_type'];
+            $params = apply_filters('suovawp_taxonomy_params', $params, $taxonomy);
+
+            $posttype = $params['object_type'] ?? '';
             unset($params['object_type']);
 
             if (isset($params['admin_enhance'])) {
