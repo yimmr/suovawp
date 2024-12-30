@@ -19,7 +19,7 @@ class State implements \ArrayAccess
         return $this->set($name, $value);
     }
 
-    public function push($key, $value)
+    public function append($key, $value)
     {
         $array = $this->array($key, []);
         $array[] = $value;
