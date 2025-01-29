@@ -149,7 +149,7 @@ abstract class Meta
     /** @uses self::addMeta()  */
     public function add(string $key, $value, $unique = false)
     {
-        $value = $this->prepareSave($key, $value);
+        // $value = $this->prepareSave($key, $value);
         return $this->addMeta($this->metaKey($key), $value, $unique);
     }
 
@@ -188,11 +188,11 @@ abstract class Meta
      *
      * @uses delete_metadata()
      */
-    public function deleteMany(string $key, $value = '')
+    public function deleteMany(string $key, $value = '', $deleteAll = false)
     {
         $metaKey = $this->metaKey($key);
         unset($this->data[$metaKey]);
-        return delete_metadata($this->type, $this->id, $metaKey, $value, true);
+        return delete_metadata($this->type, $this->id, $metaKey, $value, $deleteAll);
     }
 
     /** 删除数据库中对象id的所有元数据 */
