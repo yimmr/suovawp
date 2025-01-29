@@ -50,6 +50,8 @@ class QueryResult
 
     protected $schema;
 
+    protected $changed = false;
+
     /**
      * @param array{items:Item[],page:int,per_page:int,query:Query,params:array,pages?:int,
      * total?:int,total_callback?:callable():int,wp_query_args?:array} $props
@@ -120,14 +122,36 @@ class QueryResult
         return $this->models = $this->schema::buildModelMany($this->items, true);
     }
 
+    public function prepend($item)
+    {
+        array_unshift($this->items, $item);
+        $this->changed = true;
+    }
+
+    public function append($item)
+    {
+        $this->items[] = $item;
+        $this->changed = true;
+    }
+
     public function getItems()
     {
         return $this->items;
     }
 
+    public function isChanged()
+    {
+        return empty($this->changed);
+    }
+
     public function isEmpty()
     {
         return empty($this->items);
+    }
+
+    public function count()
+    {
+        return count($this->items);
     }
 
     public function total()

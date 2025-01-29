@@ -24,7 +24,7 @@ class File extends Any
         if (!isset($value['tmp_name'],$value['name'],$value['size'],$value['error'])) {
             return false;
         }
-        return is_uploaded_file($value['tmp_name']);
+        return true;
     }
 
     public function cast($value)
@@ -36,7 +36,7 @@ class File extends Any
     {
         switch ($method) {
             case 'ok':
-                return UPLOAD_ERR_OK === $value['error'];
+                return UPLOAD_ERR_OK === $value['error'] && is_uploaded_file($value['tmp_name']);
             case 'video':
                 return UtilsFile::isVideo($value['tmp_name'], $value['name'], $params[0]);
             case 'audio':

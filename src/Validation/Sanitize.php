@@ -10,21 +10,19 @@ class Sanitize
 {
     /**
      * @template T
-     *
-     * @param T      $value
-     * @param string $type   过滤类型：
-     *                       - 首先根据类型查找类似 `sanitize_{$type}_field` | `sanitize_{$type}` 的函数
-     *                       - 未找到对应函数时，若`$type`是可调用，则调用该函数并返回函数结果
-     *                       - 均未匹配则原值返回
-     * @param mixed  $params 依序传给过滤器的参数
-     *
+     * @param  T       $value
+     * @param  string  $type   过滤类型：
+     *                         - 首先根据类型查找类似 `sanitize_{$type}_field` | `sanitize_{$type}` 的函数
+     *                         - 未找到对应函数时，若`$type`是可调用，则调用该函数并返回函数结果
+     *                         - 均未匹配则原值返回
+     * @param  mixed   $params 依序传给过滤器的参数
      * @return T|mixed
      */
     public static function sanitize($value, $type = 'text', ...$params)
     {
         if (function_exists($func = 'sanitize_'.$type.'_field')) {
             return $func($value, ...$params);
-        } elseif (function_exists('sanitize_'.$type)) {
+        } elseif (function_exists($func = 'sanitize_'.$type)) {
             return $func($value, ...$params);
         }
         return $value;
@@ -175,10 +173,9 @@ class Sanitize
     /**
      * 检查是否是安全链接，站内域名(端口不限)直接安全，站外可进行额外检查.
      *
-     * @param string       $url
-     * @param bool|array   $allowedDomains false表示只允许站内，true表示不限，数组表示仅允许站内和数组指定域名
-     * @param string|false $urlType        是否检查URL具体内容。false不检查，'image'需是图片，'page'需是HTML页面
-     *
+     * @param  string       $url
+     * @param  bool|array   $allowedDomains false表示只允许站内，true表示不限，数组表示仅允许站内和数组指定域名
+     * @param  string|false $urlType        是否检查URL具体内容。false不检查，'image'需是图片，'page'需是HTML页面
      * @return bool
      */
     public static function isSafeURL($url, $allowedDomains = false, $urlType = false)

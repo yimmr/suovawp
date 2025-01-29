@@ -209,7 +209,7 @@ class Context implements ContractsContext
         return new \WP_Error($code, $message, $errors);
     }
 
-    public function apiSuccess($data = null, string $message = 'ok')
+    public function apiSuccess($data = null, string $message = '')
     {
         // rest_ensure_response();
         return ['status' => 'success', 'code' => 200, 'message' => $message, 'data' => $data];

@@ -11,6 +11,8 @@ namespace Suovawp\Utils;
  */
 class Date
 {
+    public const ISO_FORMAT = 'Y-m-d\TH:i:s.u\Z';
+
     /**
      * 创建DateTime对象，自动设置WP时区.
      *
@@ -24,7 +26,7 @@ class Date
         if (is_numeric($datetime) && ctype_digit((string) $datetime)) {
             return (new \DateTime('@'.$datetime))->setTimezone($timezone);
         }
-        if ('@' === $datetime[0] && ctype_digit(substr($datetime, 1))) {
+        if (isset($datetime[0]) && '@' === $datetime[0] && ctype_digit(substr($datetime, 1))) {
             return (new \DateTime($datetime))->setTimezone($timezone);
         }
         return new \DateTime($datetime, $timezone);
@@ -244,19 +246,32 @@ class Date
     /**
      * 补全时间.
      *
-     * @param string $date
      * @param string $separator 日期和时间之间的分隔符
      */
-    public static function fillTime($date, $separator = ' ')
+    public static function fillTime(string $date, string $separator = ' ', string $defaultTime = '00:00:00'): string
     {
-        if (!$date) {
+        if (empty($date)) {
             return '';
         }
         if (false === strpos($date, $separator)) {
-            return $date.$separator.'00:00:00';
+            return $date.$separator.$defaultTime;
         }
-        [$date, $time] = explode($separator, $date);
-        return $date.$separator.implode(':', array_pad(explode(':', $time), 3, '00'));
+        [$datePart, $timePart] = explode($separator, $date);
+        $timeSegments = explode(':', $timePart);
+        $defaultSegments = explode(':', $defaultTime);
+        $time = [];
+        for ($i = 0; $i < 3; ++$i) {
+            $time[] = $timeSegments[$i] ?? $defaultSegments[$i];
+        }
+        return $datePart.$separator.implode(':', $time);
+    }
+
+    /**
+     * 补全时间间隔对，天则补一天，小时补一小时....
+     */
+    public static function fillTimeInterval($date, $separator = ' ')
+    {
+        return [static::fillTime($date, $separator), static::fillTime($date, $separator, '23:59:59')];
     }
 
     /**

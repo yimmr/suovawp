@@ -85,6 +85,15 @@ class Assets
         return $this;
     }
 
+    public function defaultEntryIf($entry)
+    {
+        if ($this->defaultEntry) {
+            return $this;
+        }
+        $this->defaultEntry = $entry;
+        return $this;
+    }
+
     /**
      * 指定Vite入口文件，所有相关依赖都会自动引入.
      *

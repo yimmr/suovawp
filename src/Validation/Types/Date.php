@@ -25,7 +25,7 @@ class Date extends Any
 
     public function cast($value)
     {
-        return UtilsDate::format('Y-m-d H:i:s', $value);
+        return $value ? UtilsDate::format('Y-m-d H:i:s', $value) : '';
     }
 
     public function check(&$value, $method, $params = null)

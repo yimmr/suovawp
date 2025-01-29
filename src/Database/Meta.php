@@ -27,6 +27,8 @@ abstract class Meta
     /** @var string 若有则是对象的子类型 */
     protected $subType;
 
+    protected $customTable = false;
+
     /** @var array{string,mixed} 以原始meta键做缓存键 */
     protected $data = [];
 
@@ -101,6 +103,11 @@ abstract class Meta
         $this->id = (int) $id;
         add_filter('default_'.$this->type.'_metadata', MetaCaster::class.'::defaultValue', 10, 4);
         static::setupFields();
+        if ($this->customTable) {
+            global $wpdb;
+            $key = $this->type.'meta';
+            $wpdb->$key = $wpdb->prefix.$this->table;
+        }
     }
 
     public function __get($name)
@@ -196,7 +203,7 @@ abstract class Meta
         return $wpdb->delete($wpdb->prefix.$this->table, [$this->objectIdField() => $this->id]);
     }
 
-    /** 更新已注册的所有元数据（$data数组可混合使用原始键和别名键） */
+    /** 更新已注册的所有元数据（$data数组可混合使用原始键和别名键，自动忽略未注册的键） */
     public function updateAll(array $data)
     {
         $value = [];

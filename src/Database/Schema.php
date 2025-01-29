@@ -498,8 +498,17 @@ class Schema
     protected static function afterGet($data)
     {
         foreach (static::JSON_FIELDS as $field) {
-            if (isset($data[$field]) && !is_array($data[$field])) {
-                $data[$field] = $data[$field] ? json_decode($data[$field], true) : [];
+            if (isset($data[$field])) {
+                if (!is_array($data[$field])) {
+                    $data[$field] = $data[$field] ? json_decode($data[$field], true) : [];
+                }
+            }
+        }
+        foreach (static::FIELDS as $key => $field) {
+            if (isset($data[$key])) {
+                if ('decimal' === $field['type']) {
+                    $data[$key] = MetaCaster::numeric($data[$key]);
+                }
             }
         }
         return $data;

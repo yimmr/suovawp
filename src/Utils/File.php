@@ -98,7 +98,7 @@ class File
         if (!function_exists('wp_check_filetype_and_ext')) {
             require_once ABSPATH.'wp-admin/includes/file.php';
         }
-        $callback = function ($valid, $file, $filename, $mimes, $realMime) use ($callback) {
+        $callback = function ($valid, $file, $filename, $mimes, $realMime) use (&$callback) {
             if (false === $valid['proper_filename']) {
                 $ext = pathinfo($filename, PATHINFO_EXTENSION);
                 if ($ext == $valid['ext'] && $realMime == $valid['type']) {
@@ -110,6 +110,7 @@ class File
             return $valid;
         };
         add_filter('wp_check_filetype_and_ext', $callback, 10, 5);
+        $mimes = static::resolveAllowedExtMimes($mimes);
         $validate = wp_check_filetype_and_ext($file, $filename, $mimes);
         return $validate;
     }

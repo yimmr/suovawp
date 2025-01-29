@@ -74,6 +74,8 @@ class Any
 
     protected $hasChild = false;
 
+    protected $isUnsetEmpty = false;
+
     public function __construct($label = '', $messages = [])
     {
         $this->label = $label;
@@ -120,6 +122,15 @@ class Any
     {
         $this->defaultValue = $value;
         $this->hasDefault = true;
+        return $this;
+    }
+
+    public function unsetEmpty()
+    {
+        $this->isUnsetEmpty = true;
+        if (!isset($this->requiredWhen)) {
+            $this->isOptional = true;
+        }
         return $this;
     }
 
@@ -231,6 +242,9 @@ class Any
         $rawvalue = $value;
 
         try {
+            if ($this->isUnsetEmpty && empty($value)) {
+                $this->isUndefined = true;
+            }
             if ($this->isUndefined) {
                 if ($this->hasDefault) {
                     $rawvalue = $value = $this->defaultValue;
