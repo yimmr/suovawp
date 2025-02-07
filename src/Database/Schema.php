@@ -3,6 +3,7 @@
 namespace Suovawp\Database;
 
 use Suovawp\Container;
+use Suovawp\Utils\Arr;
 
 /**
  * @template-covariant  M of object
@@ -59,6 +60,11 @@ class Schema
             $data[$key] = $field['default'] ?? null;
         }
         return $data;
+    }
+
+    public static function pick(array $args)
+    {
+        return Arr::pick($args, static::getColumns());
     }
 
     public static function getColumns()
@@ -144,6 +150,9 @@ class Schema
     public static function singleton($id)
     {
         $object = null;
+        if (!$id) {
+            throw new \InvalidArgumentException('[singleton] The provided ID is invalid or missing.');
+        }
         if (!is_numeric($id)) {
             $object = $id;
             $id = $object->{static::ID};
