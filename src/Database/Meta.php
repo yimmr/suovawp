@@ -153,6 +153,15 @@ abstract class Meta
         return $this->addMeta($this->metaKey($key), $value, $unique);
     }
 
+    /** @uses self::addMeta()  */
+    public function addIfNotExists(string $key, $value, $unique = false)
+    {
+        if ($this->exists($key, $value)) {
+            return true;
+        }
+        return $this->add($key, $value, $unique);
+    }
+
     /** @uses self::updateMeta()  */
     public function update(string $key, $value, $prevValue = '')
     {
@@ -216,6 +225,21 @@ abstract class Meta
             }
         }
         return $value;
+    }
+
+    public function exists($key, $value = null)
+    {
+        global $wpdb;
+        $metaKey = $this->metaKey($key);
+        $table = $wpdb->prefix.$this->table;
+        $sql = "SELECT 1 FROM {$table} WHERE post_id = %d AND meta_key = %s";
+        if (isset($value)) {
+            $sql .= ' AND meta_value = %s';
+            $sql = $wpdb->prepare($sql, $this->id, $metaKey, $value);
+        } else {
+            $sql = $wpdb->prepare($sql, $this->id, $metaKey);
+        }
+        return $wpdb->get_var($sql) ? true : false;
     }
 
     /** 获取已注册的所有元数据，有缓存则不会重新读取 */
