@@ -83,7 +83,6 @@ class PostRegister
 
         foreach ($taxonomies as $taxonomy => $params) {
             $params = apply_filters('suovawp_taxonomy_params', $params, $taxonomy);
-
             $posttype = $params['object_type'] ?? '';
             unset($params['object_type']);
 
