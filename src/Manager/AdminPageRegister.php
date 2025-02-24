@@ -286,12 +286,12 @@ class AdminPageRegister
             if ($entry['disable_option'] ?? false) {
                 $instance->disableOption();
             }
+            if ($entry['form'] ?? false) {
+                $entry['media'] ??= true;
+                $instance->style('wp-components', 'font-inter');
+            }
             if ($entry['media'] ?? false) {
                 $instance->media();
-            }
-            if ($entry['form'] ?? false) {
-                $instance->media();
-                $instance->style('wp-components', 'font-inter');
             }
         }
     }

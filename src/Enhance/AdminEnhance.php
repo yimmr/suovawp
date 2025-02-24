@@ -45,11 +45,15 @@ class AdminEnhance extends AdminPageModel
         if (is_string($assets)) {
             $instance->entry($assets);
         } elseif (is_array($assets)) {
+            $assets['media'] ??= false;
             if ($assets['form'] ?? false) {
-                $instance->media();
+                $assets['media'] ??= [];
                 $instance->style('wp-components', 'font-inter');
             }
-            unset($assets['form']);
+            if (false !== $assets['media']) {
+                $instance->media($assets['media']);
+            }
+            unset($assets['form'],$assets['media']);
             foreach ($assets as $key => $value) {
                 call_user_func_array([$instance, $key], (array) $value);
             }
