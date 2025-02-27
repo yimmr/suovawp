@@ -326,6 +326,15 @@ class Schema
         return static::createQuery()->has($id, $field ?? static::ID);
     }
 
+    public static function findOrNotExists(array $options, array $default = [])
+    {
+        $model = static::findFirst($options);
+        if ($model) {
+            return $model;
+        }
+        return static::newModel($default + static::getDefault(), false);
+    }
+
     /**
      * @param  QueryOptions $options
      * @return M[]
