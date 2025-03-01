@@ -288,6 +288,7 @@ class AdminPageRegister
             }
             if ($entry['form'] ?? false) {
                 $entry['media'] ??= true;
+                $instance->script('wp-api');
                 $instance->style('wp-components', 'font-inter');
             }
             if ($entry['media'] ?? false) {

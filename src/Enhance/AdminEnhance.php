@@ -48,6 +48,7 @@ class AdminEnhance extends AdminPageModel
             $assets['media'] ??= false;
             if ($assets['form'] ?? false) {
                 $assets['media'] ??= [];
+                $instance->script('wp-api');
                 $instance->style('wp-components', 'font-inter');
             }
             if (false !== $assets['media']) {
