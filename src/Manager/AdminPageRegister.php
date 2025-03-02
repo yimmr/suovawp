@@ -294,6 +294,9 @@ class AdminPageRegister
             if ($entry['media'] ?? false) {
                 $instance->media();
             }
+            if (false !== strpos($entry['src'], 'enhance-page')) {
+                $instance->script('wp-api');
+            }
         }
     }
 }

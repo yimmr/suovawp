@@ -55,6 +55,7 @@ class AdminEnhance extends AdminPageModel
                 $instance->media($assets['media']);
             }
             unset($assets['form'],$assets['media']);
+
             foreach ($assets as $key => $value) {
                 call_user_func_array([$instance, $key], (array) $value);
             }

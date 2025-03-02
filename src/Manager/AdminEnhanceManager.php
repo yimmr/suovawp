@@ -115,6 +115,7 @@ class AdminEnhanceManager
         if (self::$defaultFormEntry && isset($props['assets'])) {
             if (empty($props['assets']['entry']) && $props['assets']['form'] ?? false) {
                 $props['assets']['entry'] = self::$defaultFormEntry;
+                $props['assets']['script'] = 'wp-api';
             }
         }
         return $props;
