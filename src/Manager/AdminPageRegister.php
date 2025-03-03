@@ -273,7 +273,10 @@ class AdminPageRegister
         if ($entry instanceof \Closure) {
             $entry($instance);
         } elseif (is_array($entry)) {
-            $instance->entry($entry['src'] ?? self::$defaultEntry);
+            $instance->entry($src = $entry['src'] ?? self::$defaultEntry);
+            if (false !== strpos($entry['src'], 'enhance-page')) {
+                $instance->script('wp-api');
+            }
             foreach (['script', 'style'] as $method) {
                 if (isset($entry[$method])) {
                     $params = is_array($entry[$method]) ? $entry[$method] : [$entry[$method]];
@@ -293,9 +296,6 @@ class AdminPageRegister
             }
             if ($entry['media'] ?? false) {
                 $instance->media();
-            }
-            if (false !== strpos($entry['src'], 'enhance-page')) {
-                $instance->script('wp-api');
             }
         }
     }
