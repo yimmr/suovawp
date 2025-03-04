@@ -274,7 +274,7 @@ class AdminPageRegister
             $entry($instance);
         } elseif (is_array($entry)) {
             $instance->entry($src = $entry['src'] ?? self::$defaultEntry);
-            if (false !== strpos($entry['src'], 'enhance-page')) {
+            if (false !== strpos($src, 'enhance-page')) {
                 $instance->script('wp-api');
             }
             foreach (['script', 'style'] as $method) {
