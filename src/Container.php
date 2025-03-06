@@ -121,9 +121,9 @@ class Container
      *
      * @template T
      * @template O
-     * @param  class-string<T>        $class
-     * @param  O                      $ctx   仅首次实例化时传递的任意值
-     * @return (O is null ? T : T<O>)
+     * @param  class-string<T> $class
+     * @param  O               $ctx   仅首次实例化时传递的任意值
+     * @return T
      */
     public function singleton(string $class, $ctx = null)
     {

@@ -22,13 +22,13 @@ use Suovawp\Validation\ValidatorException;
  * @property Router   $router
  * @property object{id:string,params:array,
  * handler:string,tsr:bool}|null $route    路由匹配时非null
- * @property Assets $assets
- * @property Config $config
- * @property Option $option   自定义的选项
- * @property Option $wpoption 用于读写无预设前缀的选项，如wordpress内置选项
- * @property State  $state    自定义状态数据集
- * @property Admin  $admin    管理员界面辅助实例，仅后台可用
- * @property URL    $url      当前请求的URL
+ * @property Assets     $assets
+ * @property Config     $config
+ * @property Option     $option   自定义的选项
+ * @property Option     $wpoption 用于读写无预设前缀的选项，如wordpress内置选项
+ * @property State      $state    自定义状态数据集
+ * @property Admin|null $admin    管理员界面辅助实例，仅后台可用
+ * @property URL        $url      当前请求的URL
  */
 class Context implements ContractsContext
 {

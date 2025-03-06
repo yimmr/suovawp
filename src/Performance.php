@@ -4,6 +4,12 @@ namespace Suovawp;
 
 class Performance
 {
+    public function addHooks()
+    {
+        add_action('wp_head', [$this, 'outputTimeDiffHTML']);
+        add_action('wp_footer', [$this, 'outputTimeDiffHTML']);
+    }
+
     public function timestartDiff($precision = null)
     {
         $diff = microtime(true) - $GLOBALS['timestart'];
