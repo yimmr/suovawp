@@ -12,6 +12,12 @@ class Admin
         if (!has_action('admin_notices', [$this, 'renderNotices'])) {
             add_action('admin_notices', [$this, 'renderNotices']);
         }
+        return count($this->messages) - 1;
+    }
+
+    public function removeNotice($index)
+    {
+        unset($this->messages[$index]);
     }
 
     /**
