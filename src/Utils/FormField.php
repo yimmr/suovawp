@@ -164,6 +164,8 @@ class FormField
                 return v::string();
             case 'custom':
                 return null;
+            case 'lazy':
+                return v::any();
             case 'fieldset':
                 return self::createValidator($field['fields'], $current[$field['id']] ?? []);
             case 'group':
@@ -232,6 +234,12 @@ class FormField
             }
 
             $type = $newField['type'] ??= 'text';
+
+            if ('lazy' === $type) {
+                $newField = $field['callback']($newField, empty($field['id']) ? null : ($data[$field['id']] ?? null));
+                unset($newField['callback']);
+                $field = $newField;
+            }
 
             if (!isset($field['default']) && !($field['optional'] ?? false)) {
                 $newField['required'] = true;
