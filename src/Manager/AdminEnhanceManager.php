@@ -113,7 +113,7 @@ class AdminEnhanceManager
     {
         $props = self::$ctx->config->array($configKey);
         if (self::$defaultFormEntry && isset($props['assets'])) {
-            if (empty($props['assets']['entry']) && $props['assets']['form'] ?? false) {
+            if (empty($props['assets']['entry']) && ($props['assets']['form'] ?? false)) {
                 $props['assets']['entry'] = self::$defaultFormEntry;
                 $props['assets']['script'] = 'wp-api';
             }

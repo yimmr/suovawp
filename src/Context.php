@@ -162,6 +162,9 @@ class Context implements ContractsContext
         if ($onError) {
             return $onError($result['error'], $this);
         }
+        if (wp_doing_ajax()) {
+            return $this->error(400, __('Invalid request parameters.', 'zerofoam'));
+        }
         $this->notFound();
     }
 

@@ -513,6 +513,16 @@ class Schema
         return $fallback($data, $query);
     }
 
+    public static function parseItems(array $items, $type = 'object')
+    {
+        $result = [];
+        foreach ($items as $item) {
+            $newItem = static::afterGet((array) $item);
+            $result[] = 'object' === $type ? (object) $newItem : $newItem;
+        }
+        return $result;
+    }
+
     protected static function afterGet($data)
     {
         foreach (static::JSON_FIELDS as $field) {
@@ -590,6 +600,11 @@ class Schema
      */
     public static function wrapQuery($query, $params = [], $args = [])
     {
+    }
+
+    public static function queryAndParse(array $params, $type = 'object')
+    {
+        return static::parseItems(static::query($params)->getItems(), $type);
     }
 
     /**
