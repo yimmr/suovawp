@@ -168,8 +168,10 @@ class Arr extends Any
         return $this->addRule('tuple', $message);
     }
 
-    protected function sanitizeValue($value, $type = 'number', ...$params)
+    protected function sanitizeValue($value, ...$params)
     {
+        $type = $params[0] ?? 'number';
+        array_shift($params);
         switch ($type) {
             case 'number':
                 return array_filter($value, fn ($v) => Num::create()->is($v));

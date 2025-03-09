@@ -85,7 +85,7 @@ abstract class Model
 
     public function getReportProps(array $override = [])
     {
-        return $override + ['object_id' => $this->getId(), 'object_type' => $this->get('post_type', 'post')];
+        return $override + ['object_id' => $this->getId(), 'object_type' => $this->get('post_type', 'post'), 'preset' => 'content'];
     }
 
     public function delete()
