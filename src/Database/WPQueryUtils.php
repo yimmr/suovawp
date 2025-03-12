@@ -16,6 +16,7 @@ class WPQueryUtils
     ];
 
     public const TERMS_PARAM_MAP = [
+        'paged'    => 'page',
         'per_page' => 'number',
         'id'       => 'include',
         'ids'      => 'include',

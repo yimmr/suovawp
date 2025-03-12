@@ -61,6 +61,17 @@ abstract class Meta
 
     private static $classSetupMap = [];
 
+    public static function migrate(array $map, int $id = 0)
+    {
+        global $wpdb;
+        $meta = new static($id);
+        $table = $wpdb->prefix.$meta->table;
+        $where = $id ? ' AND '.$meta->objectIdField().' = '.($id) : '';
+        foreach ($map as $old => $new) {
+            $wpdb->query($wpdb->prepare("UPDATE {$table} SET meta_key = %s WHERE meta_key = %s".$where, $meta->k($new), $old));
+        }
+    }
+
     protected static function setupFields()
     {
         if (isset(self::$classSetupMap[static::class])) {
