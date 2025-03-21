@@ -205,11 +205,11 @@ class Context implements ContractsContext
     public function apiError(string $code = '', string $message = '', $errors = 400, $status = null)
     {
         if (is_int($errors)) {
-            $errors = ['status' => $errors];
+            $errors = ['status' => $errors, 'errors' => []];
         } else {
             $errors = ['status' => $status ?? 400, 'errors' => $errors];
         }
-        return new \WP_Error($code, $message, $errors);
+        return new \WP_Error($code ?: 'Error', $message, $errors);
     }
 
     public function apiSuccess($data = null, string $message = '')
