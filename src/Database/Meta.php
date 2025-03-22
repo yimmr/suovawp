@@ -61,6 +61,8 @@ abstract class Meta
 
     private static $classSetupMap = [];
 
+    private $missing = [];
+
     public static function migrate(array $map, int $id = 0)
     {
         global $wpdb;
@@ -112,13 +114,19 @@ abstract class Meta
     public function __construct($id)
     {
         $this->id = (int) $id;
-        add_filter('default_'.$this->type.'_metadata', MetaCaster::class.'::defaultValue', 10, 4);
+        add_filter('default_'.$this->type.'_metadata', [$this, 'setMissing'], 10, 3);
         static::setupFields();
         if ($this->customTable) {
             global $wpdb;
             $key = $this->type.'meta';
             $wpdb->$key = $wpdb->prefix.$this->table;
         }
+    }
+
+    public function setMissing($value, $object_id, $meta_key)
+    {
+        $this->missing[$meta_key] = true;
+        return $value;
     }
 
     public function __get($name)
@@ -138,7 +146,10 @@ abstract class Meta
         if (isset($this->data[$metaKey])) {
             return $this->data[$metaKey];
         }
-        $value = $this->getMeta($metaKey, $single) ?? $default;
+        $value = $this->getMeta($metaKey, $single);
+        if (isset($this->missing[$metaKey])) {
+            $value = $default;
+        }
         if (!$single) {
             $value = is_array($value) && $value ? $value : $default;
         }
