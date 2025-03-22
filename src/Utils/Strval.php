@@ -170,6 +170,11 @@ class Strval
         return $this;
     }
 
+    public function eq($str)
+    {
+        return $this->value === $str;
+    }
+
     public function match(string $pattern)
     {
         preg_match($pattern, $this->value, $matches);
