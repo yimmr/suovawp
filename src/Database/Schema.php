@@ -166,6 +166,20 @@ class Schema
         return static::$container->instance($key, $model);
     }
 
+    public static function deleteCache($id)
+    {
+        $object = null;
+        if (!$id) {
+            throw new \InvalidArgumentException('[singleton] The provided ID is invalid or missing.');
+        }
+        if (!is_numeric($id)) {
+            $object = $id;
+            $id = $object->{static::ID};
+        }
+        $key = static::MODEL.'::'.$id;
+        return static::$container->remove($key);
+    }
+
     /**
      * @param int    $id
      * @param I|null $object
