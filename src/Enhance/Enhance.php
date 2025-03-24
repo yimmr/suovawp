@@ -150,7 +150,7 @@ abstract class Enhance
     public static function enhanceRoot($data)
     {
         settings_errors('enhance-settings');
-        $attr = isset($data['root_class']) ? ' class="'.$data['root_class'].'"' : '';
+        $attr = ' class="enhance-root'.(isset($data['root_class']) ? ' '.$data['root_class'] : '').'"';
         return '<div id="enhance-root"'.$attr.'><script type="application/json">'.json_encode($data).'</script></div>';
     }
 }

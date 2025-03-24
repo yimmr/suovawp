@@ -31,6 +31,8 @@ export default {
         'tw-aspect-auto',
         'tw-aspect-video',
         'tw-aspect-square',
+        'tw-p-0',
+        'tw-m-0',
         {
             pattern: /^tw-grid-cols-([1-9]|1[0-2])$/,
             variants: ['sm', 'md', 'lg', 'xl', '2xl'],
