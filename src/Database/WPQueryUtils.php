@@ -27,6 +27,7 @@ class WPQueryUtils
         'per_page' => 'number',
         'id'       => 'comment__in',
         'ids'      => 'comment__in',
+        'author'   => 'user_id',
     ];
 
     public const USERS_PARAM_MAP = [
