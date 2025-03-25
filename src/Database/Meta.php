@@ -279,16 +279,25 @@ abstract class Meta
      */
     protected function prepareSave(string $key, $value)
     {
-        $value = $this->castToSchema($value, $key);
+        $value = $this->castToSchema($value, $key, true);
         return $value;
     }
 
-    protected function castToSchema($value, string $key)
+    protected function castToSchema($value, string $key, $isSave = false)
     {
         if (!isset(static::$fields[$key])) {
             return $value;
         }
-        if (isset(static::$fields[$key]['cast'])) {
+        if ($isSave && isset(static::$fields[$key]['save_cast'])) {
+            $cast = static::$fields[$key]['save_cast'];
+            if (is_string($cast) && '@' === $cast[0]) {
+                $cast = substr($cast, 1);
+                $value = MetaCaster::$cast($value);
+            } else {
+                $value = $cast($value);
+            }
+            return $value;
+        } if (isset(static::$fields[$key]['cast'])) {
             $cast = static::$fields[$key]['cast'];
             if (is_string($cast) && '@' === $cast[0]) {
                 $cast = substr($cast, 1);

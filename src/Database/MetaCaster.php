@@ -59,6 +59,11 @@ class MetaCaster
         return [];
     }
 
+    public static function idstr($value)
+    {
+        return is_array($value) ? implode(',', $value) : strval($value);
+    }
+
     public static function price($value, $n = 2)
     {
         if (!is_numeric($value)) {
