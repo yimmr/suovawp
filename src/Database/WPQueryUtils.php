@@ -33,6 +33,7 @@ class WPQueryUtils
         'page'     => 'paged',
         'per_page' => 'number',
         'id'       => 'include',
+        's'        => 'search',
         'ids'      => 'include',
     ];
 
