@@ -15,7 +15,7 @@ export interface FormContentProps {
     parentName?: { raw: string; parsed: string };
     defaultWidth?: string;
 }
-
+let keyidx = 0;
 export default function ({
     fields,
     errors,
@@ -25,7 +25,7 @@ export default function ({
     parentName,
     defaultWidth,
 }: FormContentProps) {
-    return fields.map((field, i) => {
+    return fields.map((field) => {
         const { className, width, type = 'text', id = '', name } = field;
         const errorId = parentId ? `${parentId}.${id}` : id;
         const clsn = parseClassNames(className, width, type, defaultWidth);
@@ -56,7 +56,7 @@ export default function ({
         }
 
         return (
-            <Fragment key={id + '_' + i}>
+            <Fragment key={id + '_' + (keyidx += 1)}>
                 <FormField
                     {...field}
                     name={realName}

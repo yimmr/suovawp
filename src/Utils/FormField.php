@@ -276,7 +276,6 @@ class FormField
             if ('code' == $newField['type']) {
                 $newField['lang'] ??= 'html';
             }
-
             $newFields[] = $newField;
         }
         return $newFields;

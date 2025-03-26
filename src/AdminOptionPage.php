@@ -37,18 +37,18 @@ class AdminOptionPage extends AdminPageModel
 
     protected function handleFormAction()
     {
-        if (empty($_POST['submit_type']) || empty($_POST[$this->topName])) {
-            if (!empty($_POST['submit_type'])) {
-                wp_die('Unauthorized', 400);
-            }
+        if (empty($_POST['submit_type'])) {
+            return;
+        }
+        $submitType = $_POST['submit_type'];
+        $tabId = $_POST['active_tab'] ?? null;
+        $topName = $this->topName.($tabId ? '_'.$tabId : '');
+        if (empty($_POST[$topName])) {
             return;
         }
         if (empty($_POST['_wpnonce']) || !$this->checkToken($_POST['_wpnonce'])) {
             wp_die('Unauthorized', 400);
         }
-
-        $submitType = $_POST['submit_type'];
-        $tabId = $_POST['active_tab'] ?? null;
         if ($this->hasTabs()) {
             $settings = $this->getTab($tabId);
             if (!isset($settings)) {
@@ -64,7 +64,7 @@ class AdminOptionPage extends AdminPageModel
 
         switch ($submitType) {
             case 'save':
-                $input = $_POST[$this->topName];
+                $input = $_POST[$topName];
                 break;
             case 'reset':
                 $input = FormField::extractDefaultValue($fields);
@@ -73,7 +73,6 @@ class AdminOptionPage extends AdminPageModel
                 wp_die('Invalid Form Submission!', 400);
                 break;
         }
-
         $optionBasename = $this->getOptionBasename($tabId);
         $validator = FormField::createValidator($fields, $this->getData($optionBasename));
         $result = $validator->safeParse($input);
@@ -136,7 +135,7 @@ class AdminOptionPage extends AdminPageModel
                     $tab['fields'] = [];
                 } else {
                     $data = $this->getData($this->getOptionBasename($tab['id']), []);
-                    $tab['fields'] = FormField::toClientFields($tab['fields'], $data, $this->topName);
+                    $tab['fields'] = FormField::toClientFields($tab['fields'], $data, $this->topName.'_'.$tab['id']);
                 }
             }
             if (isset($settings['active_tab'])) {

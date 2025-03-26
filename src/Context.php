@@ -58,6 +58,8 @@ class Context implements ContractsContext
 
     protected $isAdmin = false;
 
+    protected $asyncError;
+
     public function __construct()
     {
         static::$instance = $this;
@@ -231,9 +233,22 @@ class Context implements ContractsContext
         return isset($this->layerEngine);
     }
 
+    public function setAsyncError($err)
+    {
+        $this->asyncError = $err;
+    }
+
     public function nextLayer()
     {
-        isset($this->layerEngine) && $this->layerEngine->next();
+        if (!isset($this->layerEngine)) {
+            return;
+        }
+        if ($this->asyncError) {
+            $this->layerEngine->tail(function () {
+                throw $this->asyncError;
+            });
+        }
+        $this->layerEngine->next();
     }
 
     public function forwardLayer($path, $withwp = false, $force = false)

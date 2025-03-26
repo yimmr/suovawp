@@ -27,6 +27,8 @@ class LayerEngine
 
     private $checkPage = true;
 
+    private $asyncError;
+
     public function __construct(string $root, string $routeId)
     {
         $this->root = $root;
@@ -156,6 +158,11 @@ class LayerEngine
         } else {
             $this->includeFile($file);
         }
+    }
+
+    public function setAsyncError($err)
+    {
+        $this->asyncError = $err;
     }
 
     protected function includeFile($file, $fallback = null)
