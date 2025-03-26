@@ -148,10 +148,11 @@ class Query
      *                       - 支持多层嵌套
      *                       - 逻辑关系：$or,$and 用索引数组指定一组 `OR`|`AND` 逻辑。（关联数组隐式 `AND` 逻辑，$relation键可修改)
      *                       - 操作符：$eq,$ne,$lt,$lte,$gt,$gte,$in,$nin,$between,$regex,$like,$startsWith,$endsWith,$contains
-     *                       - 其他：$exists,$switch,$date
+     *                       - 其他：$exists,$switch,$date,$raw
      *                       - $date 使用 `WP_Date_Query` 解析构建条件。
      *                       - $date 用做条件列时，尝试从Schema::CREATED_AT获取真实列名，获取失败则无效
      *                       - $exists 只能做条件列，且值不转义
+     *                       - $raw 原始条件字符串
      *                       - 条件值不需转义时，可加 $raw 操作符
      */
     public function where(array $wheres)
@@ -397,6 +398,10 @@ class Query
             }
             if ('$exists' === $key) {
                 $conditions[] = "EXISTS ({$value})";
+                continue;
+            }
+            if ('$raw' === $key) {
+                $conditions[] = $value;
                 continue;
             }
             if ('$date' === $key) {

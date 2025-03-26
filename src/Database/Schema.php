@@ -326,7 +326,7 @@ class Schema
      *                          - 支持多层嵌套
      *                          - 操作符：$eq,$ne,$lt,$lte,$gt,$gte,$in,$nin,$between,$regex,$like,$startsWith,$endsWith,$contains
      *                          - 逻辑：$or,$and
-     *                          - 其他：$exists,$switch,$date
+     *                          - 其他：$exists,$switch,$date,$raw
      *                          - $date使用WP_Date_Query。用$date做字段时，若能从模式获得CREATED_AT，则自动使用CREATED_AT字段，否则无效
      */
     public static function where(array $where)
