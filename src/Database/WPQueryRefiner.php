@@ -218,7 +218,17 @@ class WPQueryRefiner
                 fn ($o) => $this->sqlOrderbyFilter($o, $query));
         }
         if (isset($this->hooks['clauses'])) {
+            // $map=[
+            //     'fields'  => 'query_fields',
+            //     'form'    => 'query_from',
+            //     'where'   => 'query_where',
+            //     'orderby' => 'query_orderby',
+            // ];
             $this->hooks['clauses']([], $query);
+            // if ($clauses) {
+            //     foreach ($map as $key => $value) {
+            //     }
+            // }
         }
         if ($this->hookOnce) {
             remove_filter('pre_user_query', [$this, 'usersSQLFilter']);
