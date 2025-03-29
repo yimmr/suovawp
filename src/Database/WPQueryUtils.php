@@ -56,7 +56,9 @@ class WPQueryUtils
     public static function wpTermQueryToQueryResultProps($params, $args)
     {
         if (isset($args['page'])) {
-            $args['offset'] = (int) (($args['page'] - 1) * $args['number']);
+            if (isset($args['number'])) {
+                $args['offset'] = (int) (($args['page'] - 1) * $args['number']);
+            }
             unset($args['page']);
         }
         $query = new \WP_Term_Query();
@@ -78,8 +80,8 @@ class WPQueryUtils
             'total'          => $total,
             'params'         => $params,
             'wp_query_args'  => $args,
-            'total_callback' => fn () => is_numeric($count = (new \WP_Term_Query())->query(
-                ['fields' => 'count', 'number' => null, 'offset' => null] + $args)) ? (int) $count : 0,
+            'total_callback' => fn () => is_numeric($count = $query->query(
+                ['fields' => 'count', 'number' => null, 'offset' => null])) ? (int) $count : 0,
         ];
     }
 
