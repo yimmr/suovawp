@@ -128,8 +128,9 @@ class Str extends Any
         return $this->transform('strtoupper');
     }
 
-    protected function sanitizeValue($value, $type = 'text', ...$params)
+    protected function sanitizeValue($value, ...$params)
     {
+        $type = $params ? array_shift($params) : '';
         switch ($type) {
             case 'content':
                 return Sanitize::ksesUserContent($value, ...$params);
