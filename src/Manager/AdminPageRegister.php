@@ -201,7 +201,7 @@ class AdminPageRegister
     public static function registerPageHooks(string $hookSuffix, array $page)
     {
         self::$pages[$hookSuffix] = &$page;
-        if (isset($page['entry']) || isset($page['model'])) {
+        if (isset($page['entry']) || isset($page['model']) || isset($page['load'])) {
             add_action('load-'.$hookSuffix, [self::class, 'processPageLoad']);
         }
     }
