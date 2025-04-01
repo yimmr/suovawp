@@ -6,6 +6,7 @@ import type { FormContentProps } from './FormContent';
 
 export interface SettingsFormProps {
     fields: FormContentProps['fields'];
+    data?: { [k: string]: any };
     _wpnonce: string;
     onSendBefore?: (formData: FormData) => void;
     customText?: {
@@ -40,7 +41,7 @@ const mergeText = (customText?: SettingsFormProps['customText']): typeof default
     return merge({ ...defaultText }, customText);
 };
 
-export default function ({ fields, _wpnonce, onSendBefore, customText }: SettingsFormProps) {
+export default function ({ fields, data, _wpnonce, onSendBefore, customText }: SettingsFormProps) {
     const [action, setAction] = useState('');
     const formRef = useRef<HTMLFormElement>(null);
     const [errors, setErrors] = useState<FormContentProps['errors']>({} as any);
@@ -128,7 +129,7 @@ export default function ({ fields, _wpnonce, onSendBefore, customText }: Setting
 
     return (
         <form ref={formRef} onSubmit={(e) => e.preventDefault()} method="POST">
-            <FormContent fields={fields} errors={errors} onDeleteError={deleteError} />
+            <FormContent fields={fields} data={data} errors={errors} onDeleteError={deleteError} />
             <footer className="tw-mt-10 tw-pb-10">
                 <div className="tw-flex tw-gap-4 tw-justify-center md:tw-w-1/2">
                     <Button

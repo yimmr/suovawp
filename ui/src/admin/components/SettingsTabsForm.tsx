@@ -16,10 +16,17 @@ export interface SettingsTabsFormProps {
     _wpnonce: string;
     tabs: SettingsTab[];
     activeTab?: string;
+    data?: { [k: string]: any };
     customText?: SettingsFormProps['customText'];
 }
 
-export default function ({ tabs, _wpnonce, customText, activeTab = '' }: SettingsTabsFormProps) {
+export default function ({
+    tabs,
+    data,
+    _wpnonce,
+    customText,
+    activeTab = '',
+}: SettingsTabsFormProps) {
     const [tabId, setTabId] = useState<string>(activeTab || tabs[0].id);
     const navItems = tabs.map((tab) => ({
         name: tab.id,
@@ -48,6 +55,7 @@ export default function ({ tabs, _wpnonce, customText, activeTab = '' }: Setting
             </nav>
             <SettingsForm
                 fields={tab.fields}
+                data={data ? data[tab.id] : {}}
                 _wpnonce={_wpnonce}
                 onSendBefore={handleSendBefore}
                 customText={customText}

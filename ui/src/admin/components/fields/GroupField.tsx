@@ -65,6 +65,7 @@ export default ({
     parentName,
 }: GroupFieldProps) => {
     const [initValue, initIds] = useMemo(() => setupInitValue(value, fields), [value, fields]);
+
     const [ids, setIds, fieldRef] = useFormRestState<HTMLDivElement, typeof initIds>(initIds);
     const lastIdRef = useRef(ids.length);
     const generateId = useCallback(() => (lastIdRef.current += 1), []);

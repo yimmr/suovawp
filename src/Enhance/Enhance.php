@@ -35,7 +35,8 @@ abstract class Enhance
         $initValue = $id ? $this->getData($id) : [];
         $errors = $this->getFormErrors();
         return [
-            'fields'     => FormField::toClientFields($this->getFields(), $initValue, $this->vendor),
+            'fields'     => FormField::toClientFields($this->getFields(), [], $this->vendor),
+            'data'       => $initValue,
             'errors'     => $errors,
             'root_class' => $this->options['root_class'] ?? '',
         ];

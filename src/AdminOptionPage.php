@@ -130,24 +130,29 @@ class AdminOptionPage extends AdminPageModel
     {
         $settings = $this->getSettings();
         if (isset($settings['tabs'])) {
-            foreach ($settings['tabs'] as &$tab) {
+            $data = [];
+            $tabs = [];
+            foreach ($settings['tabs'] as $tab) {
                 if (empty($tab['fields'])) {
                     $tab['fields'] = [];
                 } else {
-                    $data = $this->getData($this->getOptionBasename($tab['id']), []);
-                    $tab['fields'] = FormField::toClientFields($tab['fields'], $data, $this->topName.'_'.$tab['id']);
+                    $tabData = $this->getData($this->getOptionBasename($tab['id']), []);
+                    $data[$tab['id']] = $tabData;
+                    $tab['fields'] = FormField::toClientFields($tab['fields'], [], $this->topName.'_'.$tab['id']);
                 }
+                $tabs[] = $tab;
             }
             if (isset($settings['active_tab'])) {
                 $settings['activeTab'] = $settings['active_tab'];
                 unset($settings['active_tab']);
             }
+            return ['tabs' => $tabs, 'data' => $data];
         } else {
             $settings = array_key_exists('id', $settings) ? $settings['fields'] ?? [] : $settings;
             $data = $this->getData($this->getOptionBasename(), []);
-            $settings = FormField::toClientFields($settings, $data, $this->topName);
+            $settings = FormField::toClientFields($settings, [], $this->topName);
+            return ['data' => $data, 'fields' => $settings];
         }
-        return $settings;
     }
 
     public function getTopSettingsFields($tabId = null)

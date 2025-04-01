@@ -16,6 +16,7 @@ export default ({
     errorId,
     onDeleteError,
     parentName,
+    value,
 }: FieldsetFieldProps) => {
     return (
         <BaseField errors={errors?._errors}>
@@ -40,6 +41,7 @@ export default ({
                             fields={fields}
                             errors={errors as any}
                             parentId={errorId}
+                            data={value}
                             onDeleteError={onDeleteError}
                             parentName={parentName}
                             defaultWidth="full"

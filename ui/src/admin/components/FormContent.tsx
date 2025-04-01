@@ -14,10 +14,12 @@ export interface FormContentProps {
     onDeleteError?: (id: string) => void;
     parentName?: { raw: string; parsed: string };
     defaultWidth?: string;
+    data?: { [k: string]: any };
 }
 let keyidx = 0;
 export default function ({
     fields,
+    data,
     errors,
     idx,
     onDeleteError,
@@ -53,6 +55,10 @@ export default function ({
         }
         if (realName && idx != null) {
             realName = realName.replace('{{idx}}', idx.toString());
+        }
+
+        if (data && data[id]) {
+            field.value = data[id];
         }
 
         return (

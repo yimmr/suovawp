@@ -8,3 +8,4 @@ export { default as SettingsForm } from './components/SettingsForm';
 export { default as FormField } from './components/fields/Field';
 export { default as FormContent } from './components/FormContent';
 export { default as OptionMain } from './components/OptionMain';
+export { formatApiData } from './components/utils';

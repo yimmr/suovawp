@@ -165,6 +165,7 @@ export default function ({
                             isChild={true}
                             idx={idx}
                             fields={newFields}
+                            data={value}
                             errors={errors}
                             onDeleteError={onDeleteError}
                             parentId={errorId}
