@@ -57,8 +57,12 @@ export default function ({
             realName = realName.replace('{{idx}}', idx.toString());
         }
 
-        if (data && data[id]) {
-            field.value = data[id];
+        if (data != null && id in data) {
+            if (isSingleCheck(field)) {
+                (field as any)['checked'] = 'value' in field ? data[id] == field.value : !!data[id];
+            } else {
+                field.value = data[id];
+            }
         }
 
         return (
@@ -76,4 +80,14 @@ export default function ({
             </Fragment>
         );
     });
+}
+
+function isSingleCheck(field: FieldProps) {
+    if ('checkbox' != field.type) {
+        return false;
+    }
+    if (Array.isArray(field?.options)) {
+        return false;
+    }
+    return true;
 }
