@@ -42,7 +42,7 @@ const mergeText = (customText?: SettingsFormProps['customText']): typeof default
 };
 
 export default function ({ fields, data, _wpnonce, onSendBefore, customText }: SettingsFormProps) {
-    const [action, setAction] = useState('');
+    const actionRef = useRef('');
     const formRef = useRef<HTMLFormElement>(null);
     const [errors, setErrors] = useState<FormContentProps['errors']>({} as any);
     // const [hasError, setHasError] = useState(false);
@@ -103,7 +103,7 @@ export default function ({ fields, data, _wpnonce, onSendBefore, customText }: S
                     type: 'success',
                     duration: 3000,
                 });
-                submitType === 'reset' && window.location.reload();
+                window.location.reload();
             }
         },
         [_wpnonce, onSendBefore]
@@ -111,9 +111,9 @@ export default function ({ fields, data, _wpnonce, onSendBefore, customText }: S
 
     const handleFormAction = useCallback(
         async (e: React.MouseEvent<HTMLButtonElement>) => {
-            if (action || formRef.current == null) return;
+            if (actionRef.current || formRef.current == null) return;
             const newAction = e.currentTarget.value;
-            setAction(newAction);
+            actionRef.current = newAction;
             switch (newAction) {
                 case 'undo':
                     formRef.current.reset();
@@ -122,9 +122,9 @@ export default function ({ fields, data, _wpnonce, onSendBefore, customText }: S
                     await submitForm(newAction);
                     break;
             }
-            setAction('');
+            actionRef.current = '';
         },
-        [action, submitForm]
+        [submitForm]
     );
 
     return (
@@ -135,7 +135,7 @@ export default function ({ fields, data, _wpnonce, onSendBefore, customText }: S
                     <Button
                         variant="primary"
                         size="compact"
-                        isBusy={action === 'save'}
+                        isBusy={actionRef.current === 'save'}
                         value="save"
                         // label={formText.btns.save.tooltip}
                         onClick={handleFormAction}
@@ -148,7 +148,7 @@ export default function ({ fields, data, _wpnonce, onSendBefore, customText }: S
                         size="compact"
                         showTooltip={true}
                         label={formText.btns.undo.tooltip}
-                        isBusy={action === 'undo'}
+                        isBusy={actionRef.current === 'undo'}
                         value="undo"
                         onClick={handleFormAction}
                     >
@@ -161,7 +161,7 @@ export default function ({ fields, data, _wpnonce, onSendBefore, customText }: S
                         size="compact"
                         label={formText.btns.reset.tooltip}
                         showTooltip={true}
-                        isBusy={action === 'reset'}
+                        isBusy={actionRef.current === 'reset'}
                         value="reset"
                         onClick={handleFormAction}
                     >
