@@ -4,6 +4,25 @@ namespace Suovawp\Utils;
 
 class Arr
 {
+    /**
+     *  遍历数组.
+     *
+     * @template TValue
+     * @template TKey of array-key
+     * @template Item
+     * @param  array<TKey,TValue>                             $array
+     * @param  callable(TValue,TKey,array<TKey,TValue>): Item $callback
+     * @return array<TKey,Item>
+     */
+    public static function map(array $array, callable $callback)
+    {
+        $result = [];
+        foreach ($array as $k => $v) {
+            $result[$k] = $callback($v, $k, $array);
+        }
+        return $result;
+    }
+
     public static function isAssoc(array $array): bool
     {
         $i = 0;
