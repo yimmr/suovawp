@@ -1,6 +1,6 @@
 {
   "name": "@suovawp/ui",
-  "version": "0.1.29",
+  "version": "0.1.33",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "prepublishOnly": "pnpm run build",
-    "push": "npm publish --access public"
+    "push": "npm publish --access public",
+    "patch": "npm version patch && npm publish --access public"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

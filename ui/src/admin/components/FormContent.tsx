@@ -86,8 +86,11 @@ function isSingleCheck(field: FieldProps) {
     if ('checkbox' != field.type) {
         return false;
     }
-    if (Array.isArray(field?.options)) {
-        return false;
+    if (field?.options != null) {
+        if (Array.isArray(field.options) || typeof field.options === 'object') {
+            return false;
+        }
     }
+
     return true;
 }
