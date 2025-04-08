@@ -12,8 +12,9 @@ class Migrate
     /**
      * @template T of Schema
      * @param class-string<T>[] $schemas
+     * @param bool              $cleanCols 是否清理旧的列
      */
-    public function migrate($schemas, $prefix, $charsetCollate = '')
+    public function migrate($schemas, $prefix, $charsetCollate = '', $cleanCols = false)
     {
         if (static::$isMigrating) {
             return false;
@@ -23,6 +24,23 @@ class Migrate
             $sql = static::buildCreateTableSQL($schema, $prefix, $charsetCollate);
             // echo '<p style="white-space: pre;">'.var_export($sql, true).'</p>';
             dbDelta($sql);
+            if ($cleanCols) {
+                global $wpdb;
+                $table = self::schemaToTable($schema, $prefix);
+                $existingColumns = $wpdb->get_col("DESC $table", 0);
+                $columnsToDrop = array_diff($existingColumns, $schema::getColumns());
+                $dropcolsql = '';
+                foreach ($columnsToDrop as $column) {
+                    // 跳过主键和其他不能删除的列
+                    if ($schema::ID === $column || in_array($column, $schema::PK)) {
+                        continue;
+                    }
+                    $dropcolsql .= ', DROP COLUMN '.$column;
+                }
+                if ($dropcolsql) {
+                    $wpdb->query("ALTER TABLE $table".ltrim($dropcolsql, ',').';');
+                }
+            }
         }
         static::$isMigrating = false;
     }
@@ -57,17 +75,25 @@ class Migrate
      * @template T of Schema
      * @param class-string<T> $schema
      */
-    public function buildCreateTableSQL($schema, $prefix = '', $charsetCollate = '')
+    public static function schemaToTable($schema, $prefix = '')
     {
         if (!$schema::TABLE) {
             $pos = strrpos($schema, '\\');
             $className = false !== $pos ? substr($schema, $pos + 1) : $schema;
             $table = Str::snake($className);
-            $table = $prefix.$table;
+            return $prefix.$table;
         } else {
-            $table = $prefix.$schema::TABLE;
+            return $prefix.$schema::TABLE;
         }
+    }
 
+    /**
+     * @template T of Schema
+     * @param class-string<T> $schema
+     */
+    public function buildCreateTableSQL($schema, $prefix = '', $charsetCollate = '')
+    {
+        $table = self::schemaToTable($schema, $prefix);
         $fields = [];
         $pk = [];
         foreach ($schema::FIELDS as $column => $info) {

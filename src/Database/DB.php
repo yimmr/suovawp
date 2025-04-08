@@ -157,15 +157,15 @@ class DB
 
     /**
      * @template T of Schema
-     * @param T[]                                   $schemas
-     * @param array{veropt?:string,version?:string} $options
+     * @param T[]                                               $schemas
+     * @param array{veropt?:string,version?:string,clean?:bool} $options
      */
     public static function migrate($schemas, $options = [])
     {
         global $wpdb;
         require_once ABSPATH.'wp-admin/includes/upgrade.php';
         $migrate = new Migrate();
-        $result = $migrate->migrate($schemas, $wpdb->prefix, $wpdb->get_charset_collate());
+        $result = $migrate->migrate($schemas, $wpdb->prefix, $wpdb->get_charset_collate(), $options['clean'] ?? false);
         if (false === $result) {
             return false;
         }
