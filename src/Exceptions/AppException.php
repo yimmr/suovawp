@@ -11,10 +11,10 @@ class AppException extends \Exception
 
     public function __construct($status, $body = null, $previous = null)
     {
-        if (is_string($body)) {
-            $this->body = ['message' => $body];
-        } elseif ($body) {
+        if (is_array($body)) {
             $this->body = $body;
+        } elseif ($body) {
+            $this->body = ['message' => $body];
         } else {
             $this->body = ['message' => "Error: $status"];
         }
