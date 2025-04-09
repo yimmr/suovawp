@@ -47,6 +47,9 @@ class MetaCaster
         return is_numeric($value) && $value > 0 ? (int) $value : 0;
     }
 
+    /**
+     * @param string|array $value
+     */
     public static function ids($value)
     {
         if (is_string($value)) {
