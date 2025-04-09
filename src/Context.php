@@ -220,6 +220,11 @@ class Context implements ContractsContext
         return ['status' => 'success', 'code' => 200, 'message' => $message, 'data' => $data];
     }
 
+    public function resError(string $code = '', string $message = '')
+    {
+        return ['code' => $code, 'message' => $message, 'status' => 'error'];
+    }
+
     protected function startLayerEngine($id)
     {
         $this->layerEngine = LayerEngine::start($this->router->rootDir, $id);
