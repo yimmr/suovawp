@@ -12,6 +12,8 @@ const defaultConfig = {
 const keyMap = {
     'a.d': 'ad',
     's.m.s': 'sms',
+    'o.auth': 'oauth',
+    's.m.t.p': 'smtp',
 };
 
 async function findPHPClasses(dir, namespace = '', prefix = '', delsuffix = '') {
