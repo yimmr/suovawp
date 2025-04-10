@@ -176,4 +176,16 @@ class Str
     {
         return explode(',', str_replace(['、', '，'], ',', $value));
     }
+
+    public static function buildURL(string $baseURL, array $args = [])
+    {
+        if (!$args) {
+            return $baseURL;
+        }
+        $querystr = '';
+        foreach ($args as $key => $value) {
+            $querystr .= ($querystr ? '&' : '').$key.'='.$value;
+        }
+        return $baseURL.'?'.$querystr;
+    }
 }
