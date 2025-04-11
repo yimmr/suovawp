@@ -11,11 +11,21 @@ class Config implements \ArrayAccess
 
     protected $baseDir;
 
+    protected $pathFunc;
+
+    protected $pathFuncSubdir;
+
     private $loaded = [];
 
     public function setBasedir(string $baseDir)
     {
         $this->baseDir = rtrim($baseDir, '\/');
+    }
+
+    public function setPathFunc($func, string $subdir = '')
+    {
+        $this->pathFunc = $func;
+        $this->pathFuncSubdir = $subdir;
     }
 
     protected function beforeHas($key, $keys = null)
@@ -47,14 +57,18 @@ class Config implements \ArrayAccess
      */
     public function load(string $name, $reload = false)
     {
-        if (!isset($this->baseDir)) {
+        if (!isset($this->baseDir) && !isset($this->pathFunc)) {
             return;
         }
         if (!$reload && ($this->loaded[$name] ?? false)) {
             return;
         }
-        $basename = str_replace('/', \DIRECTORY_SEPARATOR, $name);
-        $file = $this->baseDir.\DIRECTORY_SEPARATOR.$basename.'.php';
+        $basename = str_replace('/', \DIRECTORY_SEPARATOR, $name).'.php';
+        if (isset($this->pathFunc)) {
+            $file = ($this->pathFunc)($this->pathFuncSubdir ? $this->pathFuncSubdir.\DIRECTORY_SEPARATOR.$basename : $basename);
+        } else {
+            $file = $this->baseDir.\DIRECTORY_SEPARATOR.$basename;
+        }
         if (file_exists($file)) {
             $this->set($name, include $file);
         }
