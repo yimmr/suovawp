@@ -32,6 +32,19 @@ class MetaCaster
         }
     }
 
+    public static function toArray($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+        $arr = @json_decode($value, true);
+        if ($arr) {
+            return $arr;
+        }
+        $arr = maybe_unserialize($value);
+        return is_array($arr) ? $arr : [];
+    }
+
     public static function count($value)
     {
         return max(0, (int) $value);
