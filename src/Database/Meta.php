@@ -274,6 +274,16 @@ abstract class Meta
         return $value;
     }
 
+    /** 获取已注册的所有元数据，有缓存则不会重新读取，原始数据键 */
+    public function allWithRawKey()
+    {
+        $value = [];
+        foreach ($this->keys() as $key) {
+            $value[$this->k($key)] = $this->isSingle($key) ? $this->get($key) : $this->getMany($key);
+        }
+        return $value;
+    }
+
     /**
      * @param string $key 属性名非元数据键
      */
