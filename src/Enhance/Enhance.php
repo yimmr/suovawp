@@ -17,6 +17,8 @@ abstract class Enhance
 
     abstract public function updateMeta($id, $key, $value, $prevValue = '');
 
+    abstract public function deleteMeta($id, $key, $value = '');
+
     /**
      * @param array{vendor?:string,compact?:bool,compact_prefix?:string,fields:Field[]} $options
      */
@@ -70,9 +72,14 @@ abstract class Enhance
             $data = $filter($data, $id);
         }
         $data = apply_filters('suovawp_enhance_save_data', $data, $id);
+        $allKeys = array_column($this->getFields(), 'id');
         if ($this->shouldbeCompact()) {
             $result = $this->updateMeta($id, $this->getCompactMetaKey(), $data);
             return $result;
+        }
+        $deleteKeys = array_diff($allKeys, array_keys($data));
+        foreach ($deleteKeys as $key) {
+            $this->deleteMeta($id, $key);
         }
         foreach ($data as $key => $value) {
             $this->updateMeta($id, $key, $value);

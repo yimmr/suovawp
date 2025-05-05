@@ -62,6 +62,11 @@ class Metabox extends Enhance
         return update_post_meta($id, $key, $value, $prevValue);
     }
 
+    public function deleteMeta($id, $key, $value = '')
+    {
+        return delete_post_meta($id, $key, $value);
+    }
+
     protected function filterExistedMetaKeys($id, $keys = [])
     {
         global $wpdb;

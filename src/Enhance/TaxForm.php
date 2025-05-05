@@ -46,6 +46,11 @@ class TaxForm extends Enhance
         return update_term_meta($id, $key, $value, $prevValue);
     }
 
+    public function deleteMeta($id, $key, $value = '')
+    {
+        return delete_term_meta($id, $key, $value);
+    }
+
     protected function filterExistedMetaKeys($termid, $keys = [])
     {
         global $wpdb;
