@@ -24,8 +24,15 @@ class Schema
     /** @var array<string,SchemaField> */
     public const FIELDS = [];
 
-    /** 若有多个主键可定义为数组 */
+    /**
+     * @var string|string[] 定义主键，默认在FIELDS自动获取主键，因此此项通常定义其他主键
+     */
     public const PK = [];
+
+    /**
+     * @var string|string[]|array<string,string> 定义索引键，可用关联数组指定和列名不同的索引键
+     */
+    public const KEY = [];
 
     /** 用于查询的主键 */
     public const ID = 'id';

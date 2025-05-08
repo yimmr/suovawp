@@ -124,6 +124,13 @@ class Migrate
             $pk = implode('`,`', array_unique($pk));
             $fields[] = "  PRIMARY KEY (`{$pk}`)";
         }
+        if ($schema::KEY) {
+            $keys = is_array($schema::KEY) ? $schema::KEY : [$schema::KEY];
+            foreach ($keys as $idx => $key) {
+                $idx = is_string($idx) ? $idx : $key;
+                $fields[] = "  KEY `{$idx}` (`{$key}`)";
+            }
+        }
         // 使用换行符连接字段定义
         $sql = "CREATE TABLE `{$table}` (\n".implode(",\n", $fields)."\n)";
         if ($charsetCollate) {
