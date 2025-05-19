@@ -89,6 +89,8 @@ class File
     /**
      * 尝试解析真实的文件MIME类型.
      *
+     * @depends 依赖`wp_check_filetype_and_ext`函数（依赖`php-fileinfo`扩展）
+     *
      * @param string     $file
      * @param string     $filename
      * @param array|null $mimes    若提供内置类型之外的类型，可能导致解析失败
