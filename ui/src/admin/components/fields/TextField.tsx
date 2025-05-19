@@ -1,4 +1,4 @@
-import type { TextFieldProps } from './types';
+import type { TextFieldProps } from './types2';
 import InputField from './InputField';
 
 export default ({ type, ...props }: TextFieldProps) => {

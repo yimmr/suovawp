@@ -1,4 +1,4 @@
-import type { CodeFieldProps } from './types';
+import type { CodeFieldProps } from './types2';
 import useFormRestState from '../../hooks/useFormRestState';
 import BaseField from './BaseField';
 import CodeEditor from './CodeEditor';

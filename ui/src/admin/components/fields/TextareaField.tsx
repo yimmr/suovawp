@@ -1,4 +1,4 @@
-import type { TextareaFieldProps } from './types';
+import type { TextareaFieldProps } from './types2';
 import { TextareaControl } from '@wordpress/components';
 import BaseField from './BaseField';
 

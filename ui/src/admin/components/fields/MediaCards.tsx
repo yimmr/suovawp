@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { generateGridColsWithPreset } from '../utils';
-import type { MediaCards } from './types';
+import type { MediaCards } from './types2';
 import { Attachment } from './MediaField';
 
 export const CARDS_LAYOUTS = {

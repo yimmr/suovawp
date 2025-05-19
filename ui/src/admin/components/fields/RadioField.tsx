@@ -1,4 +1,4 @@
-import type { RadioFieldProps } from './types';
+import type { RadioFieldProps } from './types2';
 import { RadioControl } from '@wordpress/components';
 import BaseField from './BaseField';
 import useFormRestState from '../../hooks/useFormRestState';

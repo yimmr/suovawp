@@ -1,4 +1,25 @@
-export type FieldProps =
+type FieldType =
+    | 'text'
+    | 'input'
+    | 'textarea'
+    | 'number'
+    | 'radio'
+    | 'checkbox'
+    | 'toggle'
+    | 'range'
+    | 'select';
+export type FieldProps = {
+    type:
+        | 'text'
+        | 'input'
+        | 'textarea'
+        | 'number'
+        | 'radio'
+        | 'checkbox'
+        | 'toggle'
+        | 'range'
+        | 'select';
+} & (
     | TextFieldProps
     | TextareaFieldProps
     | NumberFieldProps
@@ -6,7 +27,8 @@ export type FieldProps =
     | CheckboxFieldProps
     | ToggleFieldProps
     | RangeFieldProps
-    | SelectFieldProps;
+    | SelectFieldProps
+);
 
 export interface BaseFieldProps {
     name: string;
@@ -25,6 +47,7 @@ export interface BaseFieldProps {
     className?: React.HTMLAttributes<HTMLElement>['className'];
     style?: React.CSSProperties;
     pattern?: string; // 正则验证模式
+    onChange?: (value: string) => void;
 }
 
 type HTMLInputType =
@@ -42,13 +65,12 @@ type HTMLInputType =
     | 'color';
 
 export interface InputFieldProps extends BaseFieldProps {
-    type: 'input';
-    variant: HTMLInputType;
+    variant?: HTMLInputType;
+    as?: HTMLInputType; // 作为原生input的type
     autocomplete?: boolean;
 }
 
 export interface TextFieldProps extends BaseFieldProps {
-    type: 'text';
     min?: number;
     max?: number;
     showCount?: boolean;
@@ -56,7 +78,6 @@ export interface TextFieldProps extends BaseFieldProps {
 }
 
 export interface TextareaFieldProps extends BaseFieldProps {
-    type: 'textarea';
     rows?: number;
     cols?: number;
     min?: number;
@@ -66,7 +87,6 @@ export interface TextareaFieldProps extends BaseFieldProps {
 }
 
 export interface NumberFieldProps extends BaseFieldProps {
-    type: 'number';
     min?: number;
     max?: number;
     step?: number;
@@ -81,14 +101,12 @@ export type FieldOptionProps = {
 export type FieldOptions = FieldOptionProps[] | { [v: string | number]: string };
 
 export interface RadioFieldProps extends BaseFieldProps {
-    type: 'radio';
     value?: string;
     options?: FieldOptions;
     inline?: boolean;
 }
 
 export interface CheckboxFieldProps extends BaseFieldProps {
-    type: 'checkbox';
     checked?: boolean;
     value?: string | number | Array<string | number>;
     options?: FieldOptions;
@@ -97,14 +115,12 @@ export interface CheckboxFieldProps extends BaseFieldProps {
 }
 
 export interface ToggleFieldProps extends BaseFieldProps {
-    type: 'toggle';
     title?: string;
     value?: boolean;
     checked?: boolean;
 }
 
 export interface RangeFieldProps extends BaseFieldProps {
-    type: 'range';
     min?: number;
     max?: number;
     step?: number;
@@ -112,7 +128,6 @@ export interface RangeFieldProps extends BaseFieldProps {
 }
 
 export interface SelectFieldProps extends BaseFieldProps {
-    type: 'select';
     options?: FieldOptions;
     multiple?: boolean;
     value?: string | string[];

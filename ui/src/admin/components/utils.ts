@@ -1,4 +1,4 @@
-import { BaseFieldProps, FieldOptionProps, FieldOptions } from './fields/types';
+import { BaseFieldProps, FieldOptionProps, FieldOptions } from './fields/types2';
 
 const widthClasses = {
     full: 'md:tw-w-full',

@@ -1,6 +1,6 @@
 import { CheckboxControl } from '@wordpress/components';
 import BaseField from './BaseField';
-import type { CheckboxFieldProps } from './types';
+import type { CheckboxFieldProps } from './types2';
 import { Fragment } from 'react/jsx-runtime';
 import useFormRestState from '../../hooks/useFormRestState';
 import { convertFieldOptions } from '../utils';

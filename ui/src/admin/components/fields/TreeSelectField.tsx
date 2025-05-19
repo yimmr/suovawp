@@ -1,5 +1,5 @@
 import { TreeSelect } from '@wordpress/components';
-import type { TreeSelectFieldProps } from './types';
+import type { TreeSelectFieldProps } from './types2';
 import BaseField from './BaseField';
 import useFormRestState from '../../hooks/useFormRestState';
 

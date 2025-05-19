@@ -1,4 +1,4 @@
-import type { ErrorListProps } from './types';
+import type { ErrorListProps } from './types2';
 
 export const ErrorList = ({ errors }: ErrorListProps) => {
     if (!errors || errors.length < 0) {

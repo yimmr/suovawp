@@ -1,5 +1,5 @@
 import BaseField from './BaseField';
-import type { CustomFieldProps } from './types';
+import type { CustomFieldProps } from './types2';
 
 export default (props: CustomFieldProps) => {
     const { children: Child, html } = props;

@@ -1,5 +1,5 @@
 import BaseField from './BaseField';
-import type { GroupFieldProps } from './types';
+import type { GroupFieldProps } from './types2';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {

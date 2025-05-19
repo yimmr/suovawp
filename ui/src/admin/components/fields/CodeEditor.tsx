@@ -1,4 +1,4 @@
-import type { CodeEditorProps } from './types';
+import type { CodeEditorProps } from './types2';
 import CodeMirror from '@uiw/react-codemirror';
 import { loadLanguage } from '@uiw/codemirror-extensions-langs';
 import {

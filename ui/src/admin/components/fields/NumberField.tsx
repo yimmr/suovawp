@@ -1,4 +1,4 @@
-import type { NumberFieldProps } from './types';
+import type { NumberFieldProps } from './types2';
 import InputField from './InputField';
 
 export default ({ type, ...props }: NumberFieldProps) => {

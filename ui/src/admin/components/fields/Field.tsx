@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import type { FieldProps } from './types';
+import type { FieldProps } from './types2';
 import TextareaField from './TextareaField';
 import TextField from './TextField';
 import InputField from './InputField';

@@ -1,4 +1,4 @@
-import type { ToggleFieldProps } from './types';
+import type { ToggleFieldProps } from './types2';
 import { FormToggle } from '@wordpress/components';
 import useFormRestState from '../../hooks/useFormRestState';
 import BaseField from './BaseField';

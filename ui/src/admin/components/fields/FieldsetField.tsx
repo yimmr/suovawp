@@ -1,5 +1,5 @@
 import BaseField from './BaseField';
-import type { FieldsetFieldProps } from './types';
+import type { FieldsetFieldProps } from './types2';
 import FormContent from '../FormContent';
 import { PanelBody } from '@wordpress/components';
 import HelpText from './HelpText';

@@ -1,6 +1,6 @@
 import { DateTimePicker } from '@wordpress/components';
 import BaseField from './BaseField';
-import type { DatePickerFieldProps } from './types';
+import type { DatePickerFieldProps } from './types2';
 import useFormRestState from '../../hooks/useFormRestState';
 import { getLocaleText, isValidDateTime } from '../utils';
 import { useEffect } from 'react';

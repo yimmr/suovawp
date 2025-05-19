@@ -1,5 +1,5 @@
 import { ColorPalette } from '@wordpress/components';
-import type { ColorPaletteFieldProps } from './types';
+import type { ColorPaletteFieldProps } from './types2';
 import useFormRestState from '../../hooks/useFormRestState';
 import BaseField from './BaseField';
 

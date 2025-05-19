@@ -1,5 +1,5 @@
 import { TextControl } from '@wordpress/components';
-import type { InputFieldProps } from './types';
+import type { InputFieldProps } from './types2';
 import BaseField from './BaseField';
 
 export default ({ errors, value, variant, id: _id, ...props }: InputFieldProps) => {
@@ -8,7 +8,7 @@ export default ({ errors, value, variant, id: _id, ...props }: InputFieldProps) 
             <TextControl
                 __nextHasNoMarginBottom
                 onChange={(_v) => {}}
-                {...(props as any)}
+                {...props}
                 type={variant}
                 defaultValue={value}
             />

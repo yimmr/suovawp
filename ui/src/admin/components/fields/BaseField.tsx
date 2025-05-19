@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BaseFieldProps } from './types';
+import type { BaseFieldProps } from './types2';
 import { ErrorList } from './ErrorList';
 import { BaseControl } from '@wordpress/components';
 

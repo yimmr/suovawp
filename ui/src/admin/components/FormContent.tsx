@@ -1,6 +1,6 @@
 import { Fragment } from 'react/jsx-runtime';
 import FormField from './fields/Field';
-import type { FieldProps, FormErrors } from './fields/types';
+import type { FieldProps, FormErrors } from './fields/types2';
 import { parseClassNames } from './utils';
 
 import './_form.css';

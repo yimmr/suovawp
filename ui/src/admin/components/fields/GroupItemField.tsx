@@ -1,4 +1,4 @@
-import type { GroupFieldProps } from './types';
+import type { GroupFieldProps } from './types2';
 import FormContent from '../FormContent';
 import { PanelBody } from '@wordpress/components';
 import { useSortable } from '@dnd-kit/sortable';

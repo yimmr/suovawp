@@ -1,6 +1,6 @@
 import { Button } from '@wordpress/components';
 import BaseField from './BaseField';
-import type { MediaFieldProps } from './types';
+import type { MediaFieldProps } from './types2';
 import useMediaUpload from '../../hooks/useMediaUpload';
 import type { MediaAttachment } from '../../hooks/useMediaUpload';
 import { useCallback, useEffect, useRef, useState } from 'react';
